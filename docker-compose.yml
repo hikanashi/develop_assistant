@@ -1,0 +1,27 @@
+services:
+  devcontainer:
+    build:
+      context: ./docker/devcontainer
+    init: true
+    command: sleep infinity
+    working_dir: /workspace
+    volumes:
+      # プロジェクト全体を読み書き可能でマウント(Copilot 等の編集対象)
+      - .:/workspace
+      # .git はホスト管理のため読み取り専用でマウント(コンテナ内からの書き込み・コミットを禁止)
+      - ./.git:/workspace/.git:ro
+    environment:
+      - TZ=Asia/Tokyo
+    # ホストPCへの影響を防ぐための隔離設定
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 4g
+    cpus: 2
+    networks:
+      - sandbox
+
+networks:
+  sandbox:
+    driver: bridge
