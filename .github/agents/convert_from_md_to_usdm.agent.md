@@ -1,6 +1,6 @@
 ---
 description: "要求ドラフト、既存の仕様書・設計書、ソースコードを分析し、USDM (Universal Specification Describing Manner) 形式の要求仕様書 Markdown を作成・修正する。convert_from_md_to_usdm skill のツールでプロジェクト雛形生成や Excel 変換を行う。USDM、要求仕様書、要件定義、md2usdm に関する作業で使用する。"
-name: convert_from_md_to_usdm
+name: USDM分析エージェント
 tools: [read, edit, execute, search, todo, vscode_askQuestions]
 ---
 
