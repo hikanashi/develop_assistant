@@ -1,39 +1,52 @@
-rem ŠÇ—ÒŒ ŒÀ‚ÅÀs‚·‚é
+rem æ–‡å­—ã‚³ãƒ¼ãƒ‰ã‚’UTF-8ã«è¨­å®šï¼ˆæ—¥æœ¬èªè¡¨ç¤ºå¯¾ç­–ï¼‰
+chcp 65001 > nul
+
+rem ç®¡ç†è€…æ¨©é™ã§å®Ÿè¡Œã™ã‚‹
 whoami /priv | find "SeDebugPrivilege" > nul
 if %errorlevel% neq 0 (
  @powershell start-process %~0 -verb runas
  exit
 )
 
-echo WSL‚ğƒCƒ“ƒXƒg[ƒ‹‚µ‚Ü‚·
+echo WSLã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¾ã™
 wsl --install
 
-echo WSLã‚ÅDocker‚ğƒZƒbƒgƒAƒbƒv‚µ‚Ü‚·
-echo Docker Desktop ‚ÌƒCƒ“ƒXƒg[ƒ‹‚ª„§‚³‚ê‚Ü‚·‚ªA‚»‚Ì‚Ü‚Ü‘Ò‹@‚µ‚ÄDocker‚ÌƒZƒbƒgƒAƒbƒv‚ği‚ß‚Ä‚­‚¾‚³‚¢
+echo WSLä¸Šã§Dockerã‚’ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã—ã¾ã™
+echo Docker Desktop ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãŒæ¨å¥¨ã•ã‚Œã¾ã™ãŒã€ãã®ã¾ã¾å¾…æ©Ÿã—ã¦Dockerã®ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã‚’é€²ã‚ã¦ãã ã•ã„
 wsl bash -c "curl -fsSL https://get.docker.com -o get-docker.sh;sudo sh ./get-docker.sh"
 
-echo WSLã‚Åroot ˆÈŠO‚Ìƒ†[ƒU[‚©‚ç docker ‚ğg—p‚Å‚«‚é—l‚É‚µ‚Ü‚·
+echo WSLä¸Šã§root ä»¥å¤–ã®ãƒ¦ãƒ¼ã‚¶ãƒ¼ã‹ã‚‰ docker ã‚’ä½¿ç”¨ã§ãã‚‹æ§˜ã«ã—ã¾ã™
 wsl bash -c "sudo usermod -aG docker $USER"
 
-echo WSL‚ğÄ‹N“®‚µ‚Ü‚·
+echo WSLã‚’å†èµ·å‹•ã—ã¾ã™
 wsl --shutdown
 
-echo WSL‚ğÄ‹N“®‚µ‚Ü‚µ‚½
-echo WSLã‚ÌDocker‚ÌÀsŒ‹‰Ê‚ÅƒGƒ‰[‚ªo‚È‚¢‚±‚Æ‚ğŠm”F‚µ‚Ä‚­‚¾‚³‚¢
+echo WSLã‚’å†èµ·å‹•ã—ã¾ã—ãŸ
+echo WSLä¸Šã®Dockerã®å®Ÿè¡Œçµæœã§ã‚¨ãƒ©ãƒ¼ãŒå‡ºãªã„ã“ã¨ã‚’ç¢ºèªã—ã¦ãã ã•ã„
 wsl bash -c "docker images"
 
-echo WSLã‚ÌDocker‚ª©“®‹N“®‚·‚é‚±‚Æ‚ğŠm”F‚µ‚Ä‚­‚¾‚³‚¢
+echo WSLä¸Šã®DockerãŒè‡ªå‹•èµ·å‹•ã™ã‚‹ã“ã¨ã‚’ç¢ºèªã—ã¦ãã ã•ã„
 wsl bash -c "systemctl is-enabled docker"
 rem wsl bash -c "systemctl status docker"
 
-rem dockerƒƒOƒCƒ“‚Ìİ’èiJFrog‚Ìİ’èj
-rem wsl bash -c "docker login mycompany.jfrog.io -u <ƒ†[ƒU[–¼> --password-stdin"
+rem dockerãƒ­ã‚°ã‚¤ãƒ³ã®è¨­å®šï¼ˆJFrogã®è¨­å®šï¼‰
+rem wsl bash -c "docker login mycompany.jfrog.io -u <ãƒ¦ãƒ¼ã‚¶ãƒ¼å> --password-stdin"
 
-rem NPM‚ÌƒŒƒWƒXƒgƒŠ‚ğJFrog‚Éİ’è
+rem NPMã®ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã‚’JFrogã«è¨­å®š
 rem npm config set registry https://[JFrogPlatformURL]/artifactory/api/npm/<REPO_NAME>/
 rem npm login --auth-type=web
 
-code --install-extension ms-vscode-remote.remote-wsl
-code --install-extension ms-vscode-remote.remote-containers
+rem æ‹¡å¼µæ©Ÿèƒ½ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
+code --install-extension ms-vscode-remote.vscode-remote-extensionpack
+
+rem ãƒªãƒã‚¸ãƒˆãƒªãƒ•ã‚©ãƒ«ãƒ€ã«ç§»å‹•ã™ã‚‹
+cd  %~dp0
+cd ..
+
+echo ãƒªãƒã‚¸ãƒˆãƒªã‚’WSLã®repositoryãƒ•ã‚©ãƒ«ãƒ€ã«ã‚³ãƒ”ãƒ¼ã—ã¾ã™
+wsl bash -c "cp -pr . ~/repository"
+
+echo ä»¥é™ã¯WSLä¸Šã®repositoryãƒ•ã‚©ãƒ«ãƒ€ã§ä½œæ¥­ã‚’è¡Œã£ã¦ãã ã•ã„
+echo æ–°è¦ã«cloneã™ã‚‹å ´åˆã¯ã€WSLä¸Šã®VSCodeã‹ã‚‰ä½œæ¥­ã‚’è¡Œã£ã¦ãã ã•ã„
 
 pause
