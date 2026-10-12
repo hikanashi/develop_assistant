@@ -17,8 +17,8 @@ RUN chmod +x /usr/local/bin/git
 RUN groupadd --gid ${USER_GID} ${USERNAME} \
     && useradd --uid ${USER_UID} --gid ${USER_GID} -m -s /bin/bash ${USERNAME}
 
-# USDM 要求仕様書の Markdown ⇔ Excel 変換ツール
-RUN pip install --no-cache-dir md2usdm
+# USDM 要求仕様書の Markdown ⇔ Excel 変換ツールの依存関係
+RUN pip install --no-cache-dir openpyxl
 
 USER ${USERNAME}
 WORKDIR /workspace
