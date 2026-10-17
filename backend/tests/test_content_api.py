@@ -5,11 +5,13 @@ import json
 import uuid
 from pathlib import Path
 
-import pytest
+from fastapi.testclient import TestClient
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
+import pytest
 from sqlalchemy import text
 
+from app.main import app
 from app.mcp_server import mcp
 
 KEY = "test.note"
@@ -187,8 +189,8 @@ def test_update_record_not_found(client):
     assert res.json()["error"] == "record_not_found"
 
 
-def test_record_update_is_exposed_in_openapi(client):
-    openapi = client.get("/openapi.json").json()
+def test_record_update_is_exposed_in_openapi():
+    openapi = TestClient(app).get("/openapi.json").json()
     operation = openapi["paths"]["/records/{record_id}"]["put"]
     assert operation["requestBody"]["content"]["application/json"]["schema"]["$ref"] == (
         "#/components/schemas/RecordUpdateIn"

@@ -272,7 +272,9 @@ def add_revision(session: Session, record_id: uuid.UUID, data: RevisionIn) -> Re
     return RevisionOut.model_validate(revision)
 
 
-def update_record(session: Session, record_id: uuid.UUID, data: RecordUpdateIn) -> RecordWithRevisions:
+def update_record(
+    session: Session, record_id: uuid.UUID, data: RecordUpdateIn
+) -> RecordWithRevisions:
     """レコードの属性と新しいリビジョンを同一トランザクションで更新する。"""
     record = session.exec(
         select(ContentRecord).where(ContentRecord.record_id == record_id).with_for_update()
