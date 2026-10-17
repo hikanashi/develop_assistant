@@ -1,0 +1,26 @@
+# フロントエンド (Next.js 開発サーバー)
+services:
+  web:
+    build:
+      context: ../web
+    user: "1000:1000"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev -- -H 0.0.0.0"
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    volumes:
+      - ../web:/app
+      # ホストの node_modules と分離する
+      - web_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  web_node_modules:

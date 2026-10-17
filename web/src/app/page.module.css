@@ -1,0 +1,13 @@
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.ok {
+  color: #1a7f37;
+}
+
+.ng {
+  color: #cf222e;
+}

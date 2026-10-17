@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: idb
+      POSTGRES_PASSWORD: idbIDB108
+      POSTGRES_DB: IDB
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18 以降は /var/lib/postgresql 配下にマウントする
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U idb -d IDB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -1,0 +1,32 @@
+name: develop_assistant
+
+# DB と DB確認GUI はルートの compose と同じ定義を使う
+include:
+  - ../compose/db.yaml
+  - ../compose/tools.yaml
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    command: sleep infinity
+    user: vscode
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    volumes:
+      - ..:/workspaces/develop_assistant:cached
+      # コンテナ内から commit/push させない
+      - ../.git:/workspaces/develop_assistant/.git:ro
+    environment:
+      DATABASE_URL: postgresql+psycopg://idb:idbIDB108@db:5432/IDB
+      PGHOST: db
+      PGUSER: idb
+      PGPASSWORD: idbIDB108
+      PGDATABASE: IDB
+    depends_on:
+      db:
+        condition: service_healthy

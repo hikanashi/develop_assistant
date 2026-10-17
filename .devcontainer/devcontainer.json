@@ -1,0 +1,32 @@
+{
+  "name": "develop_assistant",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/develop_assistant",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "vscode",
+  "forwardPorts": [3000, 8000, "db:5432", "adminer:8080"],
+  "portsAttributes": {
+    "3000": { "label": "Next.js (web)" },
+    "8000": { "label": "FastAPI / MCP (backend)" },
+    "db:5432": { "label": "PostgreSQL 18" },
+    "adminer:8080": { "label": "Adminer (DB viewer)", "onAutoForward": "notify" }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "github.copilot",
+        "github.copilot-chat",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python",
+        "python.testing.pytestArgs": ["backend/tests"],
+        "python.testing.pytestEnabled": true
+      }
+    }
+  }
+}

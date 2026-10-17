@@ -1,0 +1,39 @@
+# バックエンド (FastAPI + MCP)。起動前に backend-init がマイグレーションと初期データ投入を行う。
+x-backend: &backend
+  build:
+    context: ../backend
+  image: das-backend:dev
+  user: "1000:1000"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  working_dir: /app
+  volumes:
+    - ../backend:/app
+  environment:
+    DATABASE_URL: postgresql+psycopg://idb:idbIDB108@db:5432/IDB
+
+services:
+  backend-init:
+    <<: *backend
+    command: sh -c "alembic upgrade head && python -m app.cli seed"
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    <<: *backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

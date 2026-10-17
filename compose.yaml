@@ -1,0 +1,11 @@
+# ローカル開発環境の起点。`docker compose up` で全サービスを起動する。
+# サービスの種類ごとに compose/ 配下へファイルを分割している。
+# 新しいツール(Dify など)は compose/<名前>.yaml を作り、下の include に1行追加する。
+name: develop_assistant
+
+include:
+  - compose/db.yaml
+  - compose/backend.yaml
+  - compose/web.yaml
+  - compose/tools.yaml
+  # - compose/dify.yaml
