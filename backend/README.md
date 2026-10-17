@@ -283,7 +283,7 @@ app/
   main.py          # アプリ本体 (ルーターの登録、/mcp のマウント)
 ```
 
-`models.py` と `db.py` は作成済みです ([テーブル構成と制約](#テーブル構成と制約))。`schemas.py` `services.py` `routers/` は必要になった時点で作成します。以降の手順は、例として `customer` テーブルの取得・設定APIを作る流れです。
+`models.py` と `db.py` は作成済みです ([テーブル構成と制約](#テーブル構成と制約))。`schemas.py` `services.py` `routers/` は JSON Schema の検証とレコード登録 ([7. JSON スキーマの編集手順](#7-json-スキーマの編集手順)) 用に作成済みです。以降の手順は、例として `customer` テーブルの取得・設定APIを作る流れです。
 
 ### 手順1: テーブルを用意する
 
@@ -546,3 +546,64 @@ VS Code の GitHub Copilot (Agent モード) から、このバックエンド�
 ```bash
 claude mcp add --transport http develop-assistant http://localhost:8000/mcp/
 ```
+
+## 7. JSON スキーマの編集手順
+
+`json_schema` 以外のテーブルの jsonb 列 (`content_revision.content_json`) の構造は、`json_schema.schema_json` の JSON Schema (draft 2020-12) で定義します。スキーマの変更にモデルの編集やマイグレーションは不要です (要件: [design/requiments/enviroment.md](../design/requiments/enviroment.md) の 4.3)。
+
+### 仕組み
+
+- レコードの追加・更新時、バックエンドが jsonb 列の値を対応するスキーマで検証します。通過した場合のみDBを更新します。
+- 検証に失敗すると、DBは更新されず、エラーの詳細が返ります (REST は HTTP 422、MCP はツールのエラー)。応答の `errors[].path` (JSON Pointer) と `message` で違反箇所を特定し、スキーマを再取得して入力を修正し、再送してください。AI も人間も同じ手順で修正できます。
+- 検証はバックエンドの `app/services.py` で行い、REST と MCP で共通です。スキーマは、リクエストで `schema_id`、または `schema_key` (`schema_version` 省略時は最新版) として指定します。検証エラーには、使ったスキーマの `schema_id`・`schema_key`・`schema_version`・`latest_schema_version` と、再取得の方法 (`refetch`) が含まれます。
+- `json_schema` の行は更新・削除できません (トリガーで保護。[テーブル構成と制約](#テーブル構成と制約))。**スキーマの編集は、`schema_version` を増やした新しい行の追加**で行います。既存のリビジョンは、作成時点の `schema_id` のスキーマを参照し続けます。
+
+### 使うAPI
+
+| 操作 | REST | MCPツール |
+|---|---|---|
+| スキーマの一覧 | `GET /schemas?schema_key=` | `list_json_schemas` |
+| スキーマの取得 | `GET /schemas/{schema_id}`、`GET /schemas/by-key/{schema_key}?version=` (省略時は最新版) | `get_json_schema` |
+| スキーマの登録 | `POST /schemas` | `register_json_schema` |
+| レコード+最初のリビジョンの作成 | `POST /records` | `create_record` |
+| リビジョンの追加 | `POST /records/{record_id}/revisions` | `add_revision` |
+| レコードの取得 | `GET /records/{record_id}` | `get_record` |
+
+検証エラーは、REST では HTTP 422 の JSON (`error`・`target`・`schema`・`errors`・`refetch`・`hint`)、MCP では同じ JSON をメッセージとする ToolError です。Swagger UI (`/docs`) で試せます。
+
+### 手順
+
+1. 現行のスキーマを確認する。`schema_key` ごとの最新の `schema_version` を調べる (`GET /schemas?schema_key=...`、または次のSQL)。
+
+   ```sql
+   SELECT schema_id, schema_key, schema_version, record_type, feature_domain
+   FROM json_schema ORDER BY schema_key, schema_version;
+   ```
+
+2. 現行の `schema_json` をファイルに書き出して編集する。成果物スキーマ (`sys.artifact`) は [design/database/schemas/sys.artifact.schema.json](../design/database/schemas/sys.artifact.schema.json) が正本。構成と編集の方針は [json-schema-design.md](../design/database/json-schema-design.md) を参照する。
+3. `$id` の末尾の版を `schema_version` と同じ新しい値にする (`urn:das:schema:<schema_key>:<schema_version>`)。
+4. スキーマ自体の妥当性と、正常例・異常例 (`examples/`) を検証する。種別を追加・変更したときは対応する examples も更新する。
+
+   ```bash
+   python design/database/schemas/validate.py
+   ```
+
+   バックエンドでも、登録前にメタスキーマ (draft 2020-12) で `schema_json` を検証し、不正なスキーマは登録されません。
+
+5. 新しい行として登録する。`schema_id` は新しい UUID、`schema_key` は既存と同じ値、`schema_version` は最新+1、`record_type`・`feature_domain` は既存の行と揃える。登録は次のどちらかで行う。
+   - シードに追加する: `backend/seed/*.json` の `json_schema` に新しい行を書き、`python -m app.cli seed` を実行する ([2. 初期投入データの編集手順](#2-初期投入データの編集手順))。既存行は更新されないため、既存の行を書き換えず、新しい行を追加する。
+   - スキーマ登録のAPI / MCPツールを使う (`POST /schemas`、`register_json_schema`)。`schema_json` はメタスキーマで検証され、`$id` を書く場合は `urn:das:schema:<schema_key>:<schema_version>` と一致している必要がある。シード投入はバックエンドの検証を通らないため、`validate.py` で事前に確認する。
+6. 新しいスキーマを使うプラットフォームに割り当てる。`platform_schema_binding` に `(platform_id, 新しい schema_id)` の行を追加する。複数プラットフォームで同じ行を共有できる。なお、`content_json` の検証に使うスキーマはリクエストで指定したもの (`schema_key` のみなら最新版) で、現時点では `platform_schema_binding` による絞り込みは行わない。
+7. 新しいスキーマで検証されることを確認する。違反する `content_json` を送って、HTTP 422 と `errors` が返ること、DBが更新されていないことを確認する。
+
+   ```bash
+   pytest
+   ```
+
+8. `seed` ファイルの変更をコミットする。Adminer などで登録した場合は、[現在のDBの内容を初期データとして保存する](#現在のdbの内容を初期データとして保存する) でシードへ反映する。
+
+### 注意事項
+
+- 登録済みのスキーマ (行) を直接 UPDATE / DELETE しない。誤って登録した場合も、新しい `schema_version` の行で置き換える。
+- 新しい版で必須項目を追加するなど、互換性のない変更をするときは、既存リビジョンの `content_json` が新しいスキーマに合わないことがある。既存リビジョンは変更されないが、それを元に新しいリビジョンを作成するときは新しいスキーマで検証されるため、必要に応じて内容を修正する。
+- スキーマを再取得してから修正する。呼び出し元が古いスキーマで修正を続けないよう、エラー応答の `schema_version` と最新版を比べる。

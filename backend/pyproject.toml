@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn[standard]",
     "fastmcp",
     "psycopg[binary]>=3",
+    "jsonschema>=4",
 ]
 
 [project.optional-dependencies]
