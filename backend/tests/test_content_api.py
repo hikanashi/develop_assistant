@@ -247,18 +247,20 @@ def test_other_errors(client):
 def test_artifact_schema_from_design_can_be_registered(client):
     path = Path(__file__).resolve().parents[2] / "design/database/schemas"
     schema = json.loads((path / "sys.artifact.schema.json").read_text(encoding="utf-8"))
+    # 初期データの sys.artifact と重複させないよう、$id のキーを変えて登録する
+    schema["$id"] = "urn:das:schema:sys.artifact.test:1"
     examples = json.loads((path / "examples/sys2.use_case.json").read_text(encoding="utf-8"))
     res = client.post(
         "/schemas",
         json={
-            "schema_key": "sys.artifact",
+            "schema_key": "sys.artifact.test",
             "schema_version": 1,
             "record_type": "ARTIFACT",
             "schema_json": schema,
         },
     )
     assert res.status_code == 201
-    body = {"record_type": "ARTIFACT", "schema_key": "sys.artifact"}
+    body = {"record_type": "ARTIFACT", "schema_key": "sys.artifact.test"}
     ok = client.post(
         "/records", json={**body, "logical_key": "uc1", "content_json": examples["valid"][0]}
     )

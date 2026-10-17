@@ -1,0 +1,124 @@
+{
+  "customer": [
+    {
+      "customer_id": "5a5a5a5a-0000-4000-8000-000000000001",
+      "name": "サンプル顧客",
+      "created_at": "2026-01-01T09:00:00+09:00"
+    }
+  ],
+  "platform": [
+    {
+      "platform_id": "5a5a5a5a-0000-4000-8000-000000000002",
+      "name": "サンプルプラットフォーム",
+      "created_at": "2026-01-01T09:00:00+09:00"
+    }
+  ],
+  "platform_version": [
+    {
+      "platform_version_id": "5a5a5a5a-0000-4000-8000-000000000003",
+      "platform_id": "5a5a5a5a-0000-4000-8000-000000000002",
+      "version_label": "1.0.0",
+      "released_at": "2026-02-01T09:00:00+09:00"
+    }
+  ],
+  "product": [
+    {
+      "product_id": "5a5a5a5a-0000-4000-8000-000000000004",
+      "customer_id": "5a5a5a5a-0000-4000-8000-000000000001",
+      "base_platform_version_id": "5a5a5a5a-0000-4000-8000-000000000003",
+      "name": "サンプル製品",
+      "created_at": "2026-02-15T09:00:00+09:00"
+    }
+  ],
+  "product_version": [
+    {
+      "product_version_id": "5a5a5a5a-0000-4000-8000-000000000005",
+      "product_id": "5a5a5a5a-0000-4000-8000-000000000004",
+      "version_label": "0.1.0",
+      "released_at": null
+    }
+  ],
+  "platform_schema_binding": [
+    {
+      "platform_id": "5a5a5a5a-0000-4000-8000-000000000002",
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    }
+  ],
+  "content_record": [
+    {
+      "record_id": "5a5a5a5a-0000-4000-8000-000000000006",
+      "origin_platform_id": "5a5a5a5a-0000-4000-8000-000000000002",
+      "origin_product_id": null,
+      "record_type": "ARTIFACT",
+      "feature_domain": null,
+      "logical_key": "sample.stakeholder_requirement.001",
+      "created_at": "2026-01-15T09:00:00+09:00"
+    }
+  ],
+  "content_revision": [
+    {
+      "revision_id": "5a5a5a5a-0000-4000-8000-000000000007",
+      "record_id": "5a5a5a5a-0000-4000-8000-000000000006",
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721",
+      "revision_no": 1,
+      "content_json": {
+        "artifact_type": "STAKEHOLDER_REQUIREMENT",
+        "process": "SYS.1",
+        "name": "挟み込み防止",
+        "statement": "ウィンドウ閉動作中に異物を検知したら停止する",
+        "stakeholder": {
+          "name": "OEM-A",
+          "stakeholder_type": "CUSTOMER_OEM"
+        },
+        "category": "SAFETY",
+        "priority": "SHOULD",
+        "status": "DRAFT"
+      },
+      "change_reason": "初版",
+      "created_at": "2026-01-15T09:00:00+09:00"
+    },
+    {
+      "revision_id": "5a5a5a5a-0000-4000-8000-000000000008",
+      "record_id": "5a5a5a5a-0000-4000-8000-000000000006",
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721",
+      "revision_no": 2,
+      "content_json": {
+        "artifact_type": "STAKEHOLDER_REQUIREMENT",
+        "process": "SYS.1",
+        "name": "挟み込み防止",
+        "statement": "ウィンドウ閉動作中に異物を検知したら直ちに停止し反転する",
+        "stakeholder": {
+          "name": "OEM-A",
+          "stakeholder_type": "CUSTOMER_OEM"
+        },
+        "category": "SAFETY",
+        "priority": "MUST",
+        "status": "DRAFT"
+      },
+      "change_reason": "顧客要望により停止後の反転動作を追加し、優先度を MUST へ変更",
+      "created_at": "2026-03-01T09:00:00+09:00"
+    }
+  ],
+  "revision_parent": [
+    {
+      "revision_id": "5a5a5a5a-0000-4000-8000-000000000008",
+      "parent_revision_id": "5a5a5a5a-0000-4000-8000-000000000007",
+      "relationship": "PREVIOUS",
+      "ordinal": 0
+    }
+  ],
+  "platform_version_content": [
+    {
+      "platform_version_id": "5a5a5a5a-0000-4000-8000-000000000003",
+      "record_id": "5a5a5a5a-0000-4000-8000-000000000006",
+      "revision_id": "5a5a5a5a-0000-4000-8000-000000000007"
+    }
+  ],
+  "product_version_content": [
+    {
+      "product_version_id": "5a5a5a5a-0000-4000-8000-000000000005",
+      "record_id": "5a5a5a5a-0000-4000-8000-000000000006",
+      "revision_id": "5a5a5a5a-0000-4000-8000-000000000008"
+    }
+  ]
+}

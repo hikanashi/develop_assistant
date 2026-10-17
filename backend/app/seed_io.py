@@ -71,7 +71,12 @@ def load_seed(engine: Engine, seed_dir: Path) -> int:
             if not rows:
                 continue
             stmt = insert(table).on_conflict_do_nothing()
-            conn.execute(stmt, [_coerce(table, row) for row in rows])
+            # 列の組が異なる行 (デフォルト値を使う行と明示する行) は、組ごとに分けて挿入する
+            groups: dict[frozenset[str], list[dict[str, Any]]] = {}
+            for row in rows:
+                groups.setdefault(frozenset(row), []).append(_coerce(table, row))
+            for group in groups.values():
+                conn.execute(stmt, group)
             count += len(rows)
     return count
 

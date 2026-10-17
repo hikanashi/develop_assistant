@@ -46,7 +46,7 @@ def make_fixture(conn):
     ids["schema"] = one(
         conn,
         "insert into json_schema (schema_key, schema_version, record_type, schema_json) "
-        "values ('sys.artifact', 1, 'ARTIFACT', '{}') returning schema_id",
+        "values ('test.schema', 1, 'ARTIFACT', '{}') returning schema_id",
     )
     ids["record"] = one(
         conn,

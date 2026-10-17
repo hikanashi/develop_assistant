@@ -176,6 +176,31 @@ docker compose -f .devcontainer/docker-compose.yml down -v    # Dev Container
 - テーブルへの挿入順は外部キーの依存関係から自動で決まるため、ファイル内の記載順は問わない。
 - 主キーが重複する行はスキップされる。**既存行の内容は更新されない** ため、既存行を変えたいときは次の「やり直し」を行う。
 
+### 設計ファイルから初期データを生成する
+
+JSON スキーマと成果物の例は、設計ファイル (`design/database/schemas/`) を正本とし、ツールで `backend/seed/` へ変換します (要件: [enviroment.md](../design/requiments/enviroment.md) の 4.4)。
+
+| 生成ファイル | 入力 | 内容 |
+|---|---|---|
+| `seed/10_json_schema.json` | `sys.artifact.schema.json` | `json_schema` の行。`schema_key`・`schema_version` は `$id` から取る |
+| `seed/20_artifact_examples.json` | `examples/*.json` の `valid` | 例1件ごとに `content_record` 1行と `content_revision` 1行 (`revision_no` = 1)。`logical_key` は `<種別キー>.<連番>` (例: `sys1.actor.001`) |
+
+```bash
+cd backend
+python -m app.cli build-seed          # 設計ファイルから seed を生成する
+python -m app.cli build-seed --check  # 書き込まず、生成ファイルが設計と一致するか確認する
+```
+
+- **`backend/` に移動して実行してください。** `app` パッケージは `backend/` 直下にあるため、リポジトリ直下で `python -m app.cli ...` を実行すると `No module named 'app'` で失敗します。リポジトリ直下から実行する場合は `PYTHONPATH=backend python -m app.cli build-seed` としてください。依存パッケージ (`jsonschema` など) は `pip install -e backend` で入ります (Dev Container では導入済み)。
+- DBへの接続は不要で、`.env` も読み込みません。`backend` コンテナは `design/` を参照できないため、ホストまたは Dev Container の `app` コンテナで実行してください。`docker compose up` では実行されません。生成ファイルはコミットします。
+- 生成ファイルは手で編集しません。設計ファイルを編集して再実行します。
+- ID は `$id` や `logical_key` から決定的に生成するため (UUIDv5)、同じ入力なら同じ内容になります。
+- スキーマ・例が不正 (メタスキーマ違反、正常例がスキーマに不適合) の場合は、何も書き込まずエラーで終了します。
+- スキーマの版を上げる (`$id` の版を変える) と、生成済みの旧版の行は残したまま新しい版の行が追加されます。同じ版のまま内容を変えるとエラーになります (登録済みスキーマは変更できないため)。
+- 例の中の参照 (`record_id`) は書き換えません。参照先の存在確認は、書き込み時のバックエンドの検証で行うため、初期データには参照先がない例が含まれます。
+
+`seed/00_sample_master.json` は、ER 設計 ([er-design.md](../design/database/er-design.md)) の全テーブルを 1 行以上含む手書きのサンプルです (`json_schema` は `10_json_schema.json` が提供します)。
+
 ### 投入
 
 ```bash
@@ -591,6 +616,7 @@ claude mcp add --transport http develop-assistant http://localhost:8000/mcp/
    バックエンドでも、登録前にメタスキーマ (draft 2020-12) で `schema_json` を検証し、不正なスキーマは登録されません。
 
 5. 新しい行として登録する。`schema_id` は新しい UUID、`schema_key` は既存と同じ値、`schema_version` は最新+1、`record_type`・`feature_domain` は既存の行と揃える。登録は次のどちらかで行う。
+   - 成果物スキーマ (`sys.artifact`) を設計ファイルから登録する: `$id` の版を上げたうえで `python -m app.cli build-seed` を実行すると、`backend/seed/10_json_schema.json` に新しい版の行が追加される (旧版の行は残る。[設計ファイルから初期データを生成する](#設計ファイルから初期データを生成する))。続けて `python -m app.cli seed` を実行する。
    - シードに追加する: `backend/seed/*.json` の `json_schema` に新しい行を書き、`python -m app.cli seed` を実行する ([2. 初期投入データの編集手順](#2-初期投入データの編集手順))。既存行は更新されないため、既存の行を書き換えず、新しい行を追加する。
    - スキーマ登録のAPI / MCPツールを使う (`POST /schemas`、`register_json_schema`)。`schema_json` はメタスキーマで検証され、`$id` を書く場合は `urn:das:schema:<schema_key>:<schema_version>` と一致している必要がある。シード投入はバックエンドの検証を通らないため、`validate.py` で事前に確認する。
 6. 新しいスキーマを使うプラットフォームに割り当てる。`platform_schema_binding` に `(platform_id, 新しい schema_id)` の行を追加する。複数プラットフォームで同じ行を共有できる。なお、`content_json` の検証に使うスキーマはリクエストで指定したもの (`schema_key` のみなら最新版) で、現時点では `platform_schema_binding` による絞り込みは行わない。

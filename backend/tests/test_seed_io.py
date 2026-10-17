@@ -46,3 +46,11 @@ def test_seed_roundtrip(engine, tmp_path):
     exported = json.loads(out.read_text())["tmp_seed_test"]
     assert exported == [{"id": rid, "n": 1, "doc": {"k": [1, 2]}}]
     assert UUID(exported[0]["id"])
+
+
+def test_seed_rows_with_different_columns(engine, tmp_path):
+    a, b = "6f9619ff-8b86-d011-b42d-00c04fc964ff", "7f9619ff-8b86-d011-b42d-00c04fc964ff"
+    (tmp_path / "a.json").write_text(
+        json.dumps({"tmp_seed_test": [{"id": a, "n": 1, "doc": {}}, {"id": b, "doc": {}}]})
+    )
+    assert load_seed(engine, tmp_path) == 2

@@ -105,7 +105,8 @@ ENV-001〜006 の構成を、AWS を使わずにローカルで再現する。
 |---|---|
 | 配置 | `backend/seed/*.json` |
 | 形式 | `{"テーブル名": [{"列名": 値, ...}, ...]}` |
-| 投入 | `python -m app.cli seed`。ファイル名順に読み込み、外部キー順に挿入する。主キーが重複する行はスキップする |
+| ファイル構成 | `00_sample_master.json` (ER 設計に基づくサンプル。手書き。ENV-027)、`10_json_schema.json` (JSON スキーマ。生成。ENV-025)、`20_artifact_examples.json` (成果物の例。生成。ENV-026)。生成ファイルは手で編集せず、[4.4 の生成ツール](#44-初期データの生成ツール-env-025env-028) で再生成する |
+| 投入 | `python -m app.cli seed`。ファイル名順に読み込み、外部キー順に挿入する。主キーが重複する行はスキップする。投入元のディレクトリ (既定は `backend/seed/`) は、`backend/` からの相対位置で決める。`backend` コンテナは `backend/` だけを `/app` にマウントするため、リポジトリルートからの相対位置で決めてはならない (`/app/seed` を参照できなくなり、何も投入されない)。同じテーブル内で指定する列が行ごとに異なっていてもよい (省略した列は DB のデフォルト値になる) |
 | エクスポート | `python -m app.cli export [-o 出力先]`。出力はそのまま投入データとして使える |
 
 ### 4.2 DB の内容確認 (ENV-014)
@@ -128,7 +129,7 @@ JSON スキーマの扱いは次のとおりとする。
 
 - JSON スキーマの仕様は draft 2020-12 とする ([design/database/json-schema-design.md](../database/json-schema-design.md))。
 - 登録済みの `JSON_SCHEMA` 行は更新・削除できない (整合性ルール8)。スキーマの変更は、同じ `schema_key` で `schema_version` を増やした新しい行の追加として行う。既存のリビジョンは作成時点の `schema_id` を参照し続ける。
-- スキーマの追加・変更はデータの投入 (`backend/seed/*.json` またはAPI) で行い、Alembic のマイグレーションや再デプロイを要さない。
+- スキーマの追加・変更はデータの投入 (`backend/seed/*.json` またはAPI) で行い、Alembic のマイグレーションや再デプロイを要さない。設計ファイル (`design/database/schemas/`) を編集した場合は、[生成ツール](#44-初期データの生成ツール-env-025env-028) で `backend/seed/` に反映する。
 - `JSON_SCHEMA` へ登録する `schema_json` 自体も、登録前に JSON Schema のメタスキーマで検証する。不正なスキーマは登録しない。
 - 検証エラーの応答は REST では HTTP 422 とし、MCP ではツールのエラーとして、同じ内容を構造化データで返す。
 
@@ -149,6 +150,59 @@ JSON スキーマの扱いは次のとおりとする。
   "hint": "スキーマを再取得し、errors の path を修正して再送してください"
 }
 ```
+
+### 4.4 初期データの生成ツール (ENV-025〜ENV-028)
+
+JSON スキーマの設計 (`design/database/` 配下) を変更したとき、その内容を初期投入データへ反映できるよう、設計ファイルを初期投入データへ変換するツールを用意する。
+
+| ID | 要件 |
+|---|---|
+| ENV-025 | 生成ツールを実行すると、[design/database/json-schema-design.md](../database/json-schema-design.md) に定義された JSON スキーマ (「配置と生成」の `schemas/sys.artifact.schema.json`) を `JSON_SCHEMA` テーブルの初期投入データに変換し、`backend/seed/10_json_schema.json` に格納する。 |
+| ENV-026 | 生成ツールを実行すると、`design/database/schemas/examples/*.json` の正常例 (`valid`) を、データベースの初期投入データ (`CONTENT_RECORD` / `CONTENT_REVISION`) に変換し、`backend/seed/20_artifact_examples.json` に格納する。 |
+| ENV-027 | [design/database/er-design.md](../database/er-design.md) の全テーブル (12 テーブル) について、各テーブル 1 レコード以上の初期投入データを作成し、`backend/seed/` に格納する (`00_sample_master.json`)。 |
+| ENV-028 | 生成ツールの使い方を [backend/README.md](../../backend/README.md) の「初期投入データの編集手順」に記載する。 |
+
+#### ツール仕様 (ENV-025・ENV-026)
+
+| 項目 | 内容 |
+|---|---|
+| 実行 | `backend/` ディレクトリへ移動して `python -m app.cli build-seed` を実行する (`cd backend && python -m app.cli build-seed`)。`app` パッケージは `backend/` 直下にあり、リポジトリ直下では `No module named 'app'` で失敗するため。リポジトリ直下から実行する場合は `PYTHONPATH=backend python -m app.cli build-seed` とする。`--check` を付けると、ファイルを書き込まず、`backend/seed/` の生成ファイルが設計ファイルと一致するかだけを確認する (一致しなければ終了コード 1)。DB への接続は不要。実行には `backend/pyproject.toml` の依存 (`jsonschema` など) が必要 |
+| 実行場所 | ホストまたは Dev Container の `app` コンテナ。`backend` コンテナは `backend/` だけをマウントし `design/` を参照できないため、コンテナ内では実行しない。`docker compose up` では実行されない。生成したファイルをコミットする。生成ファイルを読む `seed` は `design/` を必要としないため、コンテナで動作する (出力先の `backend/seed/` は `backend/` からの相対位置で決めるため、コンテナ内でも同じファイルを指す) |
+| 入力 | `design/database/schemas/sys.artifact.schema.json` と `design/database/schemas/examples/*.json` |
+| 出力 | `backend/seed/10_json_schema.json`、`backend/seed/20_artifact_examples.json` (形式は 4.1 のとおり) |
+
+ENV-025 (`JSON_SCHEMA`) の変換規則:
+
+- 入力のスキーマを Draft 2020-12 のメタスキーマで検証し、通過しなければ出力せずエラー終了する (ENV-021 の「不正なスキーマは登録しない」と同じ)。
+- `schema_json` にはスキーマ全体をそのまま格納する。`schema_key` と `schema_version` は `$id` (`urn:das:schema:<schema_key>:<schema_version>`) から取り、`record_type` = `ARTIFACT`、`feature_domain` = NULL とする (json-schema-design.md の「方針」)。
+- `schema_id` は `$id` から決定的に生成する (UUIDv5、名前空間 `NAMESPACE_URL`、名前は `$id` の値)。再生成しても同じ値になり、手書きのサンプル (ENV-027) からも同じ規則で参照できる。
+- 登録済みスキーマは更新できない (整合性ルール8) ため、出力ファイルに既にある別の版 (`schema_key` が同じで `schema_version` が異なる行) は残し、新しい版の行を追加する。同じ `schema_key`・`schema_version` で `schema_json` が異なる場合は、版を上げるよう促してエラー終了する。
+
+ENV-026 (成果物の例) の変換規則:
+
+- 各ファイルの `valid` の要素 1 件を、`CONTENT_RECORD` 1 行と `CONTENT_REVISION` 1 行 (`revision_no` = 1、`content_json` = 要素そのまま、`schema_id` = ENV-025 で生成した行、`change_reason` = 例からの初期投入であることを示す文言) に変換する。`invalid` は変換しない。
+- 変換前に、すべての `valid` を入力のスキーマで検証する。通過しない要素があれば、出力せずエラー終了する (`validate.py` と同じ判定)。
+- `CONTENT_RECORD` は `record_type` = `ARTIFACT`、`feature_domain` = NULL、作成元なし (`origin_platform_id`・`origin_product_id` は NULL の共通レコード) とする。`logical_key` は `<ファイル名の種別キー>.<ファイル内の連番 (001 から)>` (例: `sys1.actor.001`) とする。
+- `record_id` と `revision_id` は `logical_key` から決定的に生成する (UUIDv5、名前空間 `NAMESPACE_URL`、名前はそれぞれ `urn:das:seed:record:<logical_key>`、`urn:das:seed:revision:<logical_key>:1`)。
+- 例の中の `RecordRef` (`record_id`) は書き換えない。参照先の存在確認は書き込み時に MCP サーバーが行う検証であり、初期投入では行わない。
+- 出力は、キーの並び・配列の順序を固定し、同じ入力から常に同じ内容になるようにする (差分を最小にし、`--check` を成立させるため)。
+
+#### テスト
+
+- 生成ファイルが設計ファイルと一致すること (`--check` 相当)、再生成しても同じ内容になること、不正なスキーマ・例を拒否すること、サンプルが全 12 テーブルを含みスキーマで検証を通ること、を `backend/tests/test_seed_builder.py` で確認する。
+- 初期データの既定の出力先・投入元が `backend/` からの相対位置であること (コンテナの `/app` でも `seed` が見つかること) を確認する。
+- `design/` を読むテストは、`design/` が存在しない環境 (`backend` コンテナ) ではスキップする。`design/` を読む既存のテストは、ホストまたは Dev Container で実行する。
+- 登録済みの `json_schema` の行と重複しないよう、スキーマ登録を試すテストは、初期データ (`sys.artifact` 版 1) と異なる `schema_key` を使う。
+
+#### サンプルデータ (ENV-027)
+
+- ER 設計のテーブル `CUSTOMER` / `PRODUCT` / `PLATFORM` / `PLATFORM_VERSION` / `PRODUCT_VERSION` / `CONTENT_RECORD` / `CONTENT_REVISION` / `REVISION_PARENT` / `JSON_SCHEMA` / `PLATFORM_SCHEMA_BINDING` / `PLATFORM_VERSION_CONTENT` / `PRODUCT_VERSION_CONTENT` を対象とする。`JSON_SCHEMA` の行は ENV-025 の出力が担うため、`00_sample_master.json` には含めず、`PLATFORM_SCHEMA_BINDING` などから ENV-025 と同じ規則で `schema_id` を参照する。
+- 各行は、外部キー・CHECK 制約・整合性ルール (er-design.md) を満たす。`CONTENT_REVISION` の `content_json` は `sys.artifact` スキーマで検証して通過する内容とする。
+- 現行の `sys.artifact` は `ARTIFACT` 用のため、サンプルのレコードは `record_type` = `ARTIFACT` とする。`FEATURE` 用のスキーマを追加した際は、あわせてサンプルを追加する。
+- `REVISION_PARENT` は、同一レコードの 2 つのリビジョンを `PREVIOUS` で結ぶ行とする。
+- 製品の `base_platform_version_id` は、サンプルのプラットフォームバージョンを参照する。
+- 主キーは、他ファイルの行から参照できるよう、固定値で書く。他の行と重複しない値とし、ENV-026 の生成値とは重ならないようにする。
+- 認証情報・データベース名を含めない (ENV-019)。
 
 ## 5. Docker Compose 構成
 
@@ -231,7 +285,7 @@ compose/
 | 1 | 環境構築手順 (Dev Container、ルートの `docker compose up`、Compose ファイルの追加方法) |
 | 2 | GitHub Copilot での MCP 設定手順 |
 | 3 | REST API / MCP ツールの構築手順 |
-| 5 | 初期投入データの編集手順 |
+| 5 | 初期投入データの編集手順 (生成ツールの使い方を含む。ENV-028) |
 | 4 | DB の内容確認・編集手順 |
 | 6 | スキーマ変更手順 |
 | 7 | JSON スキーマの編集手順 (ENV-024) |
