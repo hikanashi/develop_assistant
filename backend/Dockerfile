@@ -10,10 +10,10 @@ RUN apt-get update \
     && useradd --uid 10001 --gid app --create-home --shell /usr/sbin/nologin app
 
 WORKDIR /app
+COPY design/requiments/enviroment.md /design/requiments/enviroment.md
 COPY backend/ /app/
-RUN pip install --no-cache-dir .
-
-RUN install -d -o app -g app /app/localdata
+RUN pip install --no-cache-dir . \
+    && python -c 'import os; from app.config import LOCALDATA_DIR; LOCALDATA_DIR.mkdir(parents=True, exist_ok=True); os.chown(LOCALDATA_DIR, 10001, 10001)'
 USER app
 
 EXPOSE 8000

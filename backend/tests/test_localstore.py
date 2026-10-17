@@ -7,11 +7,20 @@ from pathlib import Path
 import pytest
 from sqlalchemy import func, select
 
+from app.config import BACKEND_DIR, configured_path
 from app.database import create_database, database_url
 from app.models import SEED_INSERT_ORDER, Customer
 from app.store import initialize_local_store, seed_database, session_with_store
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_localdata_path_uses_environment_spec_setting(tmp_path: Path, monkeypatch):
+    spec = tmp_path / "environment.md"
+    spec.write_text("| `LOCALDATA_DIR` | `backend/alternate_store` | test path |\n", encoding="utf-8")
+    monkeypatch.setattr("app.config.ENVIRONMENT_SPEC", spec)
+
+    assert configured_path("LOCALDATA_DIR") == BACKEND_DIR / "alternate_store"
 
 
 def test_unconfigured_backend_uses_file_store_and_persists_all_tables(tmp_path: Path):

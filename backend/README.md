@@ -40,14 +40,21 @@ connect to `http://localhost:8000/mcp/`. Host ports bind only to loopback. Use `
 `BACKEND_PORT` from `.env` to change the host ports.
 
 Without `.env`, Compose still starts successfully: PostgreSQL idles without opening a database,
-and the backend uses its JSON file store in the `backend_localdata` volume. This data is separate
-from PostgreSQL data and is not committed. Set all three `POSTGRES_*` values in `.env` to switch
-to PostgreSQL. If any connection setting is present but incomplete, startup reports the missing
+and the backend uses the JSON file store at `LOCALDATA_DIR`, which is visible on the host. The
+backend container runs with UID/GID 1000 by default so generated files are accessible from the
+host. On Linux/WSL, if your account uses different IDs, pass them when starting Compose:
+
+```sh
+LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)" docker compose up -d --build --wait
+```
+
+The JSON files are ignored by Git. Set all three `POSTGRES_*` values in `.env` to switch to
+PostgreSQL. If any connection setting is present but incomplete, startup reports the missing
 environment variable names.
 
 Do not run the root Compose stack and Dev Container at the same time; they share the PostgreSQL
-and local-data volumes. To stop the stack, use `docker compose down`. Do not remove named volumes
-unless you intend to delete local development data.
+volume and host `LOCALDATA_DIR`. To stop the stack, use `docker compose down`. Do not remove named
+volumes unless you intend to delete local development data.
 
 ### Adding Compose services or integrating a frontend
 
@@ -144,12 +151,11 @@ the tables and row counts with the seed files. `GET /health` should return `stat
 `GET /api/schemas`; content revisions are validated against their referenced schema before
 insertion. Do not include credentials or the database name in bug reports.
 
-For the no-`.env` file-store path, stop the PostgreSQL stack, remove only the backend's local-data
-directory/volume if a clean initial state is needed, then start Compose without `.env`. Check
-that JSON arrays are created for every ER table under `backend/localdata` in the Dev Container,
-or in the `backend_localdata` Docker volume for root Compose. Create a record through REST/MCP,
-restart the backend, and verify it remains present. Invalid JSON Schema payloads must return
-validation details and must not be persisted.
+For the no-`.env` file-store path, stop the PostgreSQL stack, remove only `LOCALDATA_DIR` if a clean
+initial state is needed, then start Compose without `.env`. Check that JSON arrays are created for
+every ER table under `LOCALDATA_DIR` on the host and in the Dev Container. Create a record through
+REST/MCP, restart the backend, and verify it remains present. Invalid JSON Schema payloads must
+return validation details and must not be persisted.
 
 ## 5. REST and MCP API
 

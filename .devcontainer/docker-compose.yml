@@ -9,7 +9,6 @@ services:
     volumes:
       - ..:/workspace:cached
       - ../.git:/workspace/.git:ro
-      - backend_localdata:/workspace/backend/localdata
     env_file:
       - path: ../.env
         required: false
@@ -36,5 +35,3 @@ services:
 
 volumes:
   pgdata:
-  backend_localdata:
-

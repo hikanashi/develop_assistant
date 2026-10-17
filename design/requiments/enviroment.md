@@ -17,6 +17,7 @@
 | `COMPOSE_PROJECT` | `inteligence_database` | Compose のプロジェクト名 (既存環境と重ならない名前にする) |
 | `BACKEND_IMAGE` | `idb-backend:dev` | バックエンドのイメージ名 |
 | `DB_PORT` / `BACKEND_PORT` | 5432 / 8000 | ホスト側の公開ポートの既定値 |
+| `LOCAL_UID` / `LOCAL_GID` | 1000 / 1000 | Compose のバックエンド実行ユーザー。ホストの `LOCALDATA_DIR` に書き込むため、必要に応じて起動時にホストの UID/GID を指定する |
 
 ### 0.2 固定値 (変更しない)
 
@@ -160,7 +161,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-035 | JSON スキーマが対応するレコードや列は、各 Markdown ファイルに記載された内容に従う。Markdown の記載から特定できない場合 (対応するテーブル・列・`record_type` などが書かれていない、複数の解釈ができる、複数の Markdown 間で矛盾するなど) は、推測せず、ユーザーに確認してから進める。 |
 | ENV-036 | サンプルデータは、`ER_DESIGN_FILE` のデータベーススキーマに従って生成する。全テーブルを対象とし、外部キー・CHECK 制約・整合性ルールを満たす (詳細は [4.5](#サンプルデータ-env-027-env-036))。 |
 | ENV-037 | 環境の実装後に、データベースにサンプルデータが格納されていることまで確認する ([4.5](#45-構築後の確認-env-037))。 |
-| ENV-040 | `.env` がなく、DB の接続情報 (`DATABASE_URL`、`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) がいずれも未設定の場合、バックエンドは PostgreSQL に接続せず、`LOCALDATA_DIR` (`backend/localdata`) 以下に JSON 形式でデータを格納する (ファイルストア)。接続情報の一部だけが設定されている場合は、設定ミスとして不足している変数名を示してエラーにする。 |
+| ENV-040 | `.env` がなく、DB の接続情報 (`DATABASE_URL`、`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) がいずれも未設定の場合、バックエンドは PostgreSQL に接続せず、設定項目 `LOCALDATA_DIR` 以下に JSON 形式でデータを格納する (ファイルストア)。接続情報の一部だけが設定されている場合は、設定ミスとして不足している変数名を示してエラーにする。 |
 | ENV-041 | ファイルストアには、DB のレコードと同じ内容を格納する。形式は、テーブルごとに 1 ファイル (`LOCALDATA_DIR/<テーブル名>.json`) とし、中身は行の配列 (`[{"列名": 値, ...}, ...]`。値の表現は [4.1](#41-初期データ-env-013-env-015) の初期データと同じ) とする。対象は `ER_DESIGN_FILE` の全テーブルである。 |
 | ENV-042 | ファイルストアでも、REST API・MCP ツール・JSON スキーマの検証 (ENV-022・ENV-023) は PostgreSQL のときと同じ処理で動く。データの書き込み (コミット) のたびに `LOCALDATA_DIR` のファイルを更新する。外部キー・CHECK 制約・一意制約は適用する。PostgreSQL のトリガーによる変更禁止 (不変性の保護) は適用しない。詳細は [4.6](#46-env-がない場合のファイルストア-env-040env-042)。 |
 | ENV-043 | `.env` がない状態でリポジトリのルートから `docker compose up` を実行しても、`env file ... not found` のエラーにならない。`.env` がない場合は PostgreSQL を起動せず (`db` は待機のみ、`backend-init` は何もせず終了)、バックエンドがファイルストアで起動する。`.env` がある場合は、`.env` に追加の設定なしで従来どおり PostgreSQL を起動する。 |
@@ -342,14 +343,14 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 | 項目 | 内容 |
 |---|---|
 | 切り替え条件 | `DATABASE_URL`・`POSTGRES_USER`・`POSTGRES_PASSWORD`・`POSTGRES_DB` がすべて未設定のとき (`.env` を読み込んでいないとき)。1 つでも設定されていれば PostgreSQL を使う。`.env` を作成して設定すれば PostgreSQL に切り替わる (`LOCALDATA_DIR` のデータは引き継がれない) |
-| 保存先 | `LOCALDATA_DIR` (既定 `backend/localdata`)。環境変数 `LOCALDATA_DIR` で変更できる (テスト用)。`BACKEND_DIR` からの相対位置で決める (コンテナの `/app` でも同じ。4.1 と同じ理由) |
+| 保存先 | 設定項目 `LOCALDATA_DIR`。`BACKEND_DIR` からの相対位置で決める (コンテナの `/app` でも同じ。4.1 と同じ理由)。ルート Compose は `BACKEND_DIR` をコンテナの `/app` に bind mount するため、ホストから `LOCALDATA_DIR` の JSON ファイルを直接参照・編集できる |
 | 形式 | `LOCALDATA_DIR/<テーブル名>.json`。行の配列。DB のレコードと同じ列・値 (ENV-041) |
 | 初回起動 | `LOCALDATA_DIR` に JSON ファイルがなければ、`SEED_DIR/*.json` を全テーブルへ投入し、`LOCALDATA_DIR` に書き出す。以降は `LOCALDATA_DIR` を正とし、`SEED_DIR` を再投入しない |
 | 更新 | レコードの追加などをコミットするたびに、内容が変わったファイルを書き出す。ファイルは手で編集できる (次回起動時に読み込まれる) |
 | 初期状態へ戻す | `LOCALDATA_DIR` を削除して再起動する |
 | `docker compose up` | `.env` がなくても失敗せず、`backend` がファイルストアで起動する (ENV-043)。`db` は PostgreSQL を起動せず待機するだけ (ヘルスチェックは正常とする)、`backend-init` は何もせず終了する。`.env` を作成すると PostgreSQL を使う (5.1・5.2) |
 | コマンド | `python -m app.cli seed` は `LOCALDATA_DIR` へ投入して書き出す。`export` は `LOCALDATA_DIR` の内容を出力する。`alembic` は PostgreSQL 用のため、ファイルストアでは実行せずエラーとする |
-| Git | `LOCALDATA_DIR` は `.gitignore` に追加し、コミットしない |
+| Git | `LOCALDATA_DIR` の JSON ファイルと一時ファイルは `.gitignore` に追加し、コミットしない。`backend/seed` の生成元データは追跡対象とする |
 | 実装 | 追加ライブラリは使わない。メモリ上の SQLite (Python 標準の `sqlite3` と SQLAlchemy) にモデル定義からテーブルを作り、サービス層は PostgreSQL と同じコードを使う |
 | 制約 | PostgreSQL のトリガーは適用しない (現行の API は更新・削除を提供しないため影響しない)。複数プロセスからの同時利用、大量データ向けではない。PostgreSQL 固有の機能は使えない |
 
@@ -386,7 +387,7 @@ COMPOSE_DIR/
 - 追加するファイルは、既存のサービス名・ボリューム名と重複させない。ポートは `127.0.0.1:${XXX_PORT:-既定値}:内部ポート` の形式にそろえる。
 - 秘密の値は `.env` に変数を追加し、`env_file: [../.env]` で読み込む。`.env.example` にも変数名と仮の値を追記する。
 - `.env` がない場合、Dev Container は `.env.example` から自動作成する。
-- ルートの `docker compose up` は、`.env` がなくても失敗しない (ENV-043)。`.env` がない場合は PostgreSQL を起動せず、バックエンドが `LOCALDATA_DIR` のファイルストアで動く ([4.6](#46-env-がない場合のファイルストア-env-040env-042))。Compose ファイルは `.env` の有無を `env_file` の `required: false` と、認証情報の環境変数が空かどうかで切り替える。`.env` に追加の設定は不要である。
+- ルートの `docker compose up` は、`.env` がなくても失敗しない (ENV-043)。`.env` がない場合は PostgreSQL を起動せず、バックエンドがファイルストアで動く ([4.6](#46-env-がない場合のファイルストア-env-040env-042))。Compose ファイルは `.env` の有無を `env_file` の `required: false` と、認証情報の環境変数が空かどうかで切り替える。`.env` に追加の設定は不要である。Compose のバックエンドは `BACKEND_DIR` をホストから bind mount するため、設定項目 `LOCALDATA_DIR` の JSON ファイルをホストから参照・編集できる。バックエンドは既定 UID/GID 1000 で実行する。ホストの UID/GID が異なる場合は起動時に `LOCAL_UID` / `LOCAL_GID` を指定する。
 
 ### 5.2 サービス
 

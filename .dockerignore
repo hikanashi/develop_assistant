@@ -1,0 +1,4 @@
+backend/**/*.json
+!backend/seed/
+!backend/seed/**/*.json
+backend/**/.*.tmp
