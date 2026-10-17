@@ -80,6 +80,10 @@ class RecordIn(RevisionIn):
         return self
 
 
+class RecordUpdateIn(RecordIn):
+    """レコードの属性を置き換え、新しいリビジョンを追加する。"""
+
+
 class RevisionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

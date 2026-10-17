@@ -24,6 +24,7 @@ from app.schemas import (
     JsonSchemaSummary,
     RecordIn,
     RecordOut,
+    RecordUpdateIn,
     RecordWithRevisions,
     RevisionIn,
     RevisionOut,
@@ -269,6 +270,29 @@ def add_revision(session: Session, record_id: uuid.UUID, data: RevisionIn) -> Re
     session.commit()
     session.refresh(revision)
     return RevisionOut.model_validate(revision)
+
+
+def update_record(
+    session: Session, record_id: uuid.UUID, data: RecordUpdateIn
+) -> RecordWithRevisions:
+    """レコードの属性と新しいリビジョンを同一トランザクションで更新する。"""
+    record = session.exec(
+        select(ContentRecord).where(ContentRecord.record_id == record_id).with_for_update()
+    ).first()
+    if record is None:
+        raise ServiceError(404, "record_not_found", f"record_id {record_id} がありません")
+    schema = _find_schema(session, data)
+    _validate_content(session, schema, data.content_json, data.record_type, data.feature_domain)
+
+    record.origin_platform_id = data.origin_platform_id
+    record.origin_product_id = data.origin_product_id
+    record.record_type = data.record_type
+    record.feature_domain = data.feature_domain
+    record.logical_key = data.logical_key
+    _flush(session)
+    _add_revision(session, record, schema, data)
+    session.commit()
+    return get_record(session, record_id)
 
 
 def get_record(session: Session, record_id: uuid.UUID) -> RecordWithRevisions:
