@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from app import services
 from app.db import get_session
-from app.schemas import RecordIn, RecordWithRevisions, RevisionIn, RevisionOut
+from app.schemas import RecordIn, RecordUpdateIn, RecordWithRevisions, RevisionIn, RevisionOut
 
 router = APIRouter(prefix="/records", tags=["record"])
 
@@ -22,6 +22,12 @@ def create_record(session: SessionDep, body: RecordIn):
 @router.get("/{record_id}", response_model=RecordWithRevisions)
 def get_record(session: SessionDep, record_id: uuid.UUID):
     return services.get_record(session, record_id)
+
+
+@router.put("/{record_id}", response_model=RecordWithRevisions)
+def update_record(session: SessionDep, record_id: uuid.UUID, body: RecordUpdateIn):
+    """レコード属性を更新し、新しいリビジョンを追加する。両方とも同時にコミットする。"""
+    return services.update_record(session, record_id, body)
 
 
 @router.post(
