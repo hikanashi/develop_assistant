@@ -124,6 +124,80 @@ def test_valid_content_creates_record_and_revisions(client, db_session):
     )
 
 
+def test_update_record_replaces_record_fields_and_appends_revision(client):
+    schema = register(client).json()
+    record = new_record(client, {"title": "before"}).json()
+
+    res = client.put(
+        f"/records/{record['record_id']}",
+        json={
+            "record_type": "ARTIFACT",
+            "logical_key": "renamed",
+            "schema_id": schema["schema_id"],
+            "content_json": {"title": "after"},
+            "change_reason": "rename and update",
+        },
+    )
+
+    assert res.status_code == 200
+    updated = res.json()
+    assert updated["logical_key"] == "renamed"
+    assert [revision["revision_no"] for revision in updated["revisions"]] == [1, 2]
+    assert updated["revisions"][1]["content_json"] == {"title": "after"}
+    assert updated["revisions"][1]["change_reason"] == "rename and update"
+    assert updated["revisions"][1]["record_id"] == record["record_id"]
+
+
+def test_update_record_validation_error_changes_neither_table(client, db_session):
+    register(client)
+    record = new_record(client, {"title": "before"}, key="original").json()
+
+    res = client.put(
+        f"/records/{record['record_id']}",
+        json={
+            "record_type": "ARTIFACT",
+            "logical_key": "changed",
+            "schema_key": KEY,
+            "content_json": {"title": 1},
+        },
+    )
+
+    assert res.status_code == 422
+    assert res.json()["error"] == "json_schema_validation_failed"
+    assert client.get(f"/records/{record['record_id']}").json()["logical_key"] == "original"
+    assert count(
+        db_session,
+        "select count(*) from content_revision where record_id = :r",
+        r=record["record_id"],
+    ) == 1
+
+
+def test_update_record_not_found(client):
+    register(client)
+    res = client.put(
+        f"/records/{uuid.uuid4()}",
+        json={
+            "record_type": "ARTIFACT",
+            "logical_key": "missing",
+            "schema_key": KEY,
+            "content_json": {"title": "x"},
+        },
+    )
+    assert res.status_code == 404
+    assert res.json()["error"] == "record_not_found"
+
+
+def test_record_update_is_exposed_in_openapi(client):
+    openapi = client.get("/openapi.json").json()
+    operation = openapi["paths"]["/records/{record_id}"]["put"]
+    assert operation["requestBody"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/RecordUpdateIn"
+    )
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] == (
+        "#/components/schemas/RecordWithRevisions"
+    )
+
+
 def test_invalid_content_is_rejected_without_writing(client, db_session):
     register(client)
     res = new_record(client, {"title": 1, "extra": True}, key="rejected")

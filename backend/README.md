@@ -617,9 +617,12 @@ alembic history            # 履歴
 | スキーマの登録 | `POST /schemas` | `register_json_schema` |
 | レコード+最初のリビジョンの作成 | `POST /records` | `create_record` |
 | リビジョンの追加 | `POST /records/{record_id}/revisions` | `add_revision` |
+| レコード属性の更新とリビジョン追加 | `PUT /records/{record_id}` | REST API のみ |
 | レコードの取得 | `GET /records/{record_id}` | `get_record` |
 
 検証エラーは、REST では HTTP 422 の JSON (`error`・`target`・`schema`・`errors`・`refetch`・`hint`)、MCP では同じ JSON をメッセージとする ToolError です。Swagger UI (`/docs`) で試せます。
+
+`PUT /records/{record_id}` はレコード属性 (`record_type`、`feature_domain`、`logical_key`、`origin_platform_id`、`origin_product_id`) を置き換えるとともに、新しい `content_revision` を追加します。リビジョンの内容は指定スキーマで検証され、レコード属性の変更とリビジョン追加は同一トランザクションでコミットされます。リクエスト・レスポンス仕様は `/openapi.json` および Swagger UI (`/docs`) で確認できます。
 
 ### 手順
 
