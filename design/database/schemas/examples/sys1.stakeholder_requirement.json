@@ -1,0 +1,56 @@
+{
+  "valid": [
+    {
+      "artifact_type": "STAKEHOLDER_REQUIREMENT",
+      "process": "SYS.1",
+      "name": "挟み込み防止",
+      "statement": "ウィンドウ閉動作中に異物を検知したら直ちに停止し反転する",
+      "stakeholder": {
+        "name": "OEM-A",
+        "stakeholder_type": "CUSTOMER_OEM"
+      },
+      "category": "SAFETY",
+      "priority": "MUST",
+      "sources": [
+        {
+          "source_type": "CUSTOMER_INPUT",
+          "storage_ref": {
+            "container": "customer-inputs",
+            "blob_key": "oem-a/spec-v1.xlsx"
+          },
+          "locator": "Sheet2 R15"
+        }
+      ],
+      "status": "DRAFT"
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "STAKEHOLDER_REQUIREMENT",
+      "process": "SYS.1",
+      "name": "x",
+      "statement": "y"
+    },
+    {
+      "artifact_type": "STAKEHOLDER_REQUIREMENT",
+      "process": "SYS.1",
+      "name": "x",
+      "statement": "y",
+      "stakeholder": {
+        "name": "a",
+        "stakeholder_type": "UNKNOWN"
+      }
+    },
+    {
+      "artifact_type": "STAKEHOLDER_REQUIREMENT",
+      "process": "SYS.1",
+      "name": "x",
+      "statement": "y",
+      "stakeholder": {
+        "name": "a",
+        "stakeholder_type": "INTERNAL"
+      },
+      "extra": 1
+    }
+  ]
+}

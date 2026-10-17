@@ -1,0 +1,32 @@
+[project]
+name = "das-backend"
+version = "0.1.0"
+description = "develop_assistant backend (FastAPI + MCP)"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "pydantic>=2",
+    "sqlalchemy>=2",
+    "sqlmodel",
+    "alembic",
+    "uvicorn[standard]",
+    "fastmcp",
+    "psycopg[binary]>=3",
+    "jsonschema>=4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

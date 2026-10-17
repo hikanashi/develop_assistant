@@ -1,0 +1,223 @@
+{
+  "valid": [
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "INITIAL",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "INITIAL",
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000011"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "スイッチ入力を受け付ける",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "ACTION",
+      "performer_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000012"
+          },
+          "flow_kind": "OBJECT",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "挟み込み検知?",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "DECISION",
+      "performer_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000013"
+          },
+          "guard": "検知"
+        },
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000014"
+          },
+          "guard": "未検知"
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "ACCEPT_EVENT",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "ACCEPT_EVENT",
+      "performer_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "event": "SwitchPressed",
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000011"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "ACTIVITY_FINAL",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "ACTIVITY_FINAL"
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "ACTION",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "ACTION",
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000012"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "DECISION",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "DECISION",
+      "performer_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000013"
+          },
+          "guard": "a"
+        },
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000014"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "DECISION",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "DECISION",
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000013"
+          },
+          "guard": "a"
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "ACTIVITY_FINAL",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "ACTIVITY_FINAL",
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000013"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "MERGE",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "MERGE",
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000013"
+          }
+        },
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000014"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "ACCEPT_EVENT",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "ACCEPT_EVENT",
+      "performer_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "next": [
+        {
+          "target_element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000011"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "ACTIVITY_ELEMENT",
+      "process": "SYS.2",
+      "name": "JUMP",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "node_type": "JUMP"
+    }
+  ]
+}

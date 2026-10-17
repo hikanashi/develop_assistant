@@ -1,0 +1,45 @@
+# バックエンド (FastAPI + MCP)。起動前に backend-init がマイグレーションと初期データ投入を行う。
+x-backend: &backend
+  build:
+    context: ../backend
+  image: das-backend:dev
+  user: "1000:1000"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  working_dir: /app
+  volumes:
+    - ../backend:/app
+  # 認証情報は .env から読み込む (POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB)。
+  # .env がない場合は読み込まず、バックエンドは backend/localdata の JSON に保存する (ファイルストア)
+  env_file:
+    - path: ../.env
+      required: false
+  environment:
+    POSTGRES_HOST: db
+
+services:
+  backend-init:
+    <<: *backend
+    # .env がない場合 (POSTGRES_USER が未設定) はファイルストアのため、何もせず終了する
+    command: sh -c '[ -z "$$POSTGRES_USER" ] || (alembic upgrade head && python -m app.cli seed)'
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    <<: *backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

@@ -1,0 +1,60 @@
+{
+  "valid": [
+    {
+      "artifact_type": "NONFUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み停止時間",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "nfr_category": "TIMING",
+      "statement": "挟み込み検知から停止までを規定時間内とする",
+      "metric": {
+        "name": "検知から停止までの時間",
+        "operator": "<=",
+        "target_value": 100,
+        "unit": "ms"
+      },
+      "measurement_condition": "全温度範囲",
+      "verification_method": "TEST"
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "NONFUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "nfr_category": "TIMING",
+      "statement": "s",
+      "metric": {
+        "name": "m",
+        "operator": "BETWEEN",
+        "target_value": 1
+      }
+    },
+    {
+      "artifact_type": "NONFUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "nfr_category": "SPEED",
+      "statement": "s",
+      "metric": {
+        "name": "m",
+        "operator": "<",
+        "target_value": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "valid": [
+    {
+      "artifact_type": "HARDWARE_REQUIREMENT",
+      "process": "SYS.3",
+      "name": "r",
+      "system_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000030"
+        }
+      ],
+      "hw_category": "ELECTRICAL",
+      "statement": "規定の要件を満たすこと",
+      "parameters": [
+        {
+          "name": "最大値",
+          "max": 100,
+          "unit": "ms",
+          "condition": "全温度範囲"
+        }
+      ],
+      "target_block_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000050"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "HARDWARE_REQUIREMENT",
+      "process": "SYS.3",
+      "name": "r",
+      "system_requirement_refs": [],
+      "hw_category": "ELECTRICAL",
+      "statement": "s"
+    },
+    {
+      "artifact_type": "HARDWARE_REQUIREMENT",
+      "process": "SYS.3",
+      "name": "r",
+      "system_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000030"
+        }
+      ],
+      "hw_category": "NOPE",
+      "statement": "s"
+    },
+    {
+      "artifact_type": "HARDWARE_REQUIREMENT",
+      "process": "SYS.3",
+      "name": "r",
+      "system_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000030"
+        }
+      ],
+      "hw_category": "ELECTRICAL",
+      "statement": "s",
+      "parameters": [
+        {
+          "name": "p"
+        }
+      ]
+    }
+  ]
+}

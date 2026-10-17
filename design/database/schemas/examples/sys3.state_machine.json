@@ -1,0 +1,100 @@
+{
+  "valid": [
+    {
+      "artifact_type": "STATE_MACHINE",
+      "process": "SYS.3",
+      "name": "ウィンドウ動作状態",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "states": [
+        {
+          "state_id": "S_INIT",
+          "name": "初期",
+          "kind": "INITIAL"
+        },
+        {
+          "state_id": "S_IDLE",
+          "name": "停止中"
+        },
+        {
+          "state_id": "S_CLOSING",
+          "name": "閉動作中",
+          "do_activity": "モーター正転"
+        }
+      ],
+      "transitions": [
+        {
+          "transition_id": "T1",
+          "source_state_id": "S_INIT",
+          "target_state_id": "S_IDLE",
+          "trigger": {
+            "kind": "COMPLETION"
+          }
+        },
+        {
+          "transition_id": "T2",
+          "source_state_id": "S_IDLE",
+          "target_state_id": "S_CLOSING",
+          "trigger": {
+            "kind": "SIGNAL",
+            "event": "SwitchUp"
+          },
+          "guard": "IGN==ON",
+          "effect": "モーター起動"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "STATE_MACHINE",
+      "process": "SYS.3",
+      "name": "x",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "states": [],
+      "transitions": []
+    },
+    {
+      "artifact_type": "STATE_MACHINE",
+      "process": "SYS.3",
+      "name": "x",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "states": [
+        {
+          "state_id": "1bad",
+          "name": "n"
+        }
+      ],
+      "transitions": []
+    },
+    {
+      "artifact_type": "STATE_MACHINE",
+      "process": "SYS.3",
+      "name": "x",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "states": [
+        {
+          "state_id": "S1",
+          "name": "n"
+        }
+      ],
+      "transitions": [
+        {
+          "transition_id": "T1",
+          "source_state_id": "S1",
+          "target_state_id": "S1",
+          "trigger": {
+            "kind": "SIGNAL"
+          }
+        }
+      ]
+    }
+  ]
+}

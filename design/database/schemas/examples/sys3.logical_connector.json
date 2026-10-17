@@ -1,0 +1,74 @@
+{
+  "valid": [
+    {
+      "artifact_type": "LOGICAL_CONNECTOR",
+      "process": "SYS.3",
+      "name": "電流通知",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "connector_kind": "ASSEMBLY",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000041"
+        },
+        "port": "MotorCurrent_out"
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000042"
+        },
+        "port": "MotorCurrent_in"
+      },
+      "interface_spec_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000021"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "LOGICAL_CONNECTOR",
+      "process": "SYS.3",
+      "name": "x",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "connector_kind": "ASSEMBLY",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000041"
+        }
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        },
+        "port": "p"
+      },
+      "interface_spec_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000021"
+      }
+    },
+    {
+      "artifact_type": "LOGICAL_CONNECTOR",
+      "process": "SYS.3",
+      "name": "x",
+      "owner_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "connector_kind": "ASSEMBLY",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000041"
+        },
+        "port": "p"
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        },
+        "port": "p"
+      }
+    }
+  ]
+}

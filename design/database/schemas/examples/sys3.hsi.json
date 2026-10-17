@@ -1,0 +1,189 @@
+{
+  "valid": [
+    {
+      "artifact_type": "HSI",
+      "process": "SYS.3",
+      "name": "モーター電流入力",
+      "hardware_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000050"
+      },
+      "software_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000051"
+      },
+      "direction": "HW_TO_SW",
+      "signal_type": "ANALOG_IN",
+      "hardware_side": {
+        "pin_name": "CUR_SENSE",
+        "peripheral": "ADC0 CH3",
+        "voltage_min_v": 0,
+        "voltage_max_v": 3.3
+      },
+      "software_side": {
+        "bsw_module": "Adc",
+        "channel": "AdcChannel_3",
+        "data": {
+          "name": "AdcRaw",
+          "data_type": "UINT16",
+          "range": {
+            "min": 0,
+            "max": 4095
+          }
+        }
+      },
+      "conversion": {
+        "expression": "I[A] = (AdcRaw - 2048) * 0.01",
+        "unit": "A"
+      },
+      "timing": {
+        "period_ms": 1,
+        "response_time_ms": 2
+      },
+      "safe_state": 0
+    },
+    {
+      "artifact_type": "HSI",
+      "process": "SYS.3",
+      "name": "モーター電流入力",
+      "hardware_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000050"
+      },
+      "software_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000051"
+      },
+      "direction": "HW_TO_SW",
+      "signal_type": "DIGITAL_IN",
+      "hardware_side": {
+        "pin_name": "CUR_SENSE",
+        "peripheral": "ADC0 CH3",
+        "voltage_min_v": 0,
+        "voltage_max_v": 3.3
+      },
+      "software_side": {
+        "bsw_module": "Adc",
+        "channel": "AdcChannel_3",
+        "data": {
+          "name": "AdcRaw",
+          "data_type": "UINT16",
+          "range": {
+            "min": 0,
+            "max": 4095
+          }
+        }
+      },
+      "timing": {
+        "period_ms": 1,
+        "response_time_ms": 2
+      },
+      "safe_state": 0
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "HSI",
+      "process": "SYS.3",
+      "name": "モーター電流入力",
+      "hardware_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000050"
+      },
+      "software_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000051"
+      },
+      "direction": "HW_TO_SW",
+      "signal_type": "ANALOG_IN",
+      "hardware_side": {
+        "pin_name": "CUR_SENSE",
+        "peripheral": "ADC0 CH3",
+        "voltage_min_v": 0,
+        "voltage_max_v": 3.3
+      },
+      "software_side": {
+        "bsw_module": "Adc",
+        "channel": "AdcChannel_3",
+        "data": {
+          "name": "AdcRaw",
+          "data_type": "UINT16",
+          "range": {
+            "min": 0,
+            "max": 4095
+          }
+        }
+      },
+      "timing": {
+        "period_ms": 1,
+        "response_time_ms": 2
+      },
+      "safe_state": 0
+    },
+    {
+      "artifact_type": "HSI",
+      "process": "SYS.3",
+      "name": "モーター電流入力",
+      "hardware_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000050"
+      },
+      "software_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000051"
+      },
+      "direction": "UP",
+      "signal_type": "ANALOG_IN",
+      "hardware_side": {
+        "pin_name": "CUR_SENSE",
+        "peripheral": "ADC0 CH3",
+        "voltage_min_v": 0,
+        "voltage_max_v": 3.3
+      },
+      "software_side": {
+        "bsw_module": "Adc",
+        "channel": "AdcChannel_3",
+        "data": {
+          "name": "AdcRaw",
+          "data_type": "UINT16",
+          "range": {
+            "min": 0,
+            "max": 4095
+          }
+        }
+      },
+      "conversion": {
+        "expression": "I[A] = (AdcRaw - 2048) * 0.01",
+        "unit": "A"
+      },
+      "timing": {
+        "period_ms": 1,
+        "response_time_ms": 2
+      },
+      "safe_state": 0
+    },
+    {
+      "artifact_type": "HSI",
+      "process": "SYS.3",
+      "name": "モーター電流入力",
+      "hardware_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000050"
+      },
+      "software_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000051"
+      },
+      "direction": "HW_TO_SW",
+      "signal_type": "ANALOG_IN",
+      "hardware_side": {
+        "pin_name": "CUR_SENSE",
+        "peripheral": "ADC0 CH3",
+        "voltage_min_v": 0,
+        "voltage_max_v": 3.3
+      },
+      "software_side": {
+        "bsw_module": "Adc"
+      },
+      "conversion": {
+        "expression": "I[A] = (AdcRaw - 2048) * 0.01",
+        "unit": "A"
+      },
+      "timing": {
+        "period_ms": 1,
+        "response_time_ms": 2
+      },
+      "safe_state": 0
+    }
+  ]
+}

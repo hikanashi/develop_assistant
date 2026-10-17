@@ -1,0 +1,44 @@
+{
+  "valid": [
+    {
+      "artifact_type": "LOGICAL_FUNCTION",
+      "process": "SYS.3",
+      "name": "挟み込み検知機能",
+      "ports": [
+        {
+          "name": "MotorCurrent",
+          "direction": "IN",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000021"
+          }
+        }
+      ],
+      "allocated_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000030"
+        }
+      ],
+      "allocated_element_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000012"
+        }
+      ],
+      "parent_function_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "LOGICAL_FUNCTION",
+      "process": "SYS.3",
+      "name": "x",
+      "ports": [
+        {
+          "name": "p",
+          "direction": "SIDE"
+        }
+      ]
+    }
+  ]
+}

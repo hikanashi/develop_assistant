@@ -1,0 +1,60 @@
+{
+  "valid": [
+    {
+      "artifact_type": "SYSTEM_BOUNDARY",
+      "process": "SYS.1",
+      "name": "パワーウィンドウECU境界",
+      "system_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "in_scope": [
+        "ウィンドウ駆動制御"
+      ],
+      "out_of_scope": [
+        "スイッチ内部回路"
+      ],
+      "external_entities": [
+        {
+          "actor_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000002"
+          },
+          "relationship": "操作",
+          "exchanges": [
+            {
+              "name": "開閉要求",
+              "direction": "TO_SYSTEM",
+              "exchange_kind": "USER_OPERATION"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "SYSTEM_BOUNDARY",
+      "process": "SYS.1",
+      "name": "x",
+      "system_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "external_entities": []
+    },
+    {
+      "artifact_type": "SYSTEM_BOUNDARY",
+      "process": "SYS.1",
+      "name": "x",
+      "system_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "external_entities": [
+        {
+          "actor_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000002"
+          },
+          "exchanges": []
+        }
+      ]
+    }
+  ]
+}

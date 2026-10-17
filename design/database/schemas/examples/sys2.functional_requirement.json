@@ -1,0 +1,483 @@
+{
+  "valid": [
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "PinchDetected",
+          "data": {
+            "name": "PinchDetected",
+            "data_type": "BOOLEAN"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "output": "PinchDetected",
+          "kind": "DECISION_TABLE",
+          "decision_table": {
+            "hit_policy": "FIRST",
+            "rules": [
+              {
+                "rule_no": 1,
+                "when": [
+                  {
+                    "input": "MotorCurrent",
+                    "operator": ">=",
+                    "value": 8.0
+                  }
+                ],
+                "then": [
+                  {
+                    "output": "PinchDetected",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "rule_no": 2,
+                "when": [
+                  {
+                    "input": "MotorCurrent",
+                    "operator": "BETWEEN",
+                    "value": [
+                      0,
+                      8
+                    ]
+                  },
+                  {
+                    "input": "Mode",
+                    "operator": "ANY"
+                  }
+                ],
+                "then": [
+                  {
+                    "output": "PinchDetected",
+                    "value": false
+                  }
+                ]
+              }
+            ],
+            "default_then": [
+              {
+                "output": "PinchDetected",
+                "value": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "電流換算",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000011"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "ADC値を電流に換算する",
+      "inputs": [
+        {
+          "name": "AdcRaw",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000021"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "output": "MotorCurrent",
+          "kind": "FORMULA",
+          "formula": {
+            "expression": "MotorCurrent = (AdcRaw - 2048) * 0.01",
+            "unit": "A",
+            "saturation": {
+              "min": 0,
+              "max": 30
+            }
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "開始",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000010"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "開始",
+      "inputs": [],
+      "outputs": []
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "PinchDetected",
+          "data": {
+            "name": "PinchDetected",
+            "data_type": "BOOLEAN"
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "PinchDetected",
+          "data": {
+            "name": "PinchDetected",
+            "data_type": "BOOLEAN"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "output": "PinchDetected",
+          "kind": "FORMULA",
+          "decision_table": {
+            "rules": []
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "PinchDetected",
+          "data": {
+            "name": "PinchDetected",
+            "data_type": "BOOLEAN"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "output": "PinchDetected",
+          "kind": "DECISION_TABLE",
+          "decision_table": {
+            "rules": [
+              {
+                "when": [
+                  {
+                    "input": "x",
+                    "operator": "BETWEEN",
+                    "value": 1
+                  }
+                ],
+                "then": [
+                  {
+                    "output": "o",
+                    "value": 1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "PinchDetected",
+          "data": {
+            "name": "PinchDetected",
+            "data_type": "BOOLEAN"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "output": "PinchDetected",
+          "kind": "DECISION_TABLE",
+          "decision_table": {
+            "rules": [
+              {
+                "when": [
+                  {
+                    "input": "x",
+                    "operator": ">",
+                    "value": [
+                      1
+                    ]
+                  }
+                ],
+                "then": [
+                  {
+                    "output": "o",
+                    "value": 1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "PinchDetected",
+          "data": {
+            "name": "PinchDetected",
+            "data_type": "BOOLEAN"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "output": "PinchDetected",
+          "kind": "DECISION_TABLE",
+          "decision_table": {
+            "rules": [
+              {
+                "when": [
+                  {
+                    "input": "x",
+                    "operator": ">"
+                  }
+                ],
+                "then": [
+                  {
+                    "output": "o",
+                    "value": 1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "artifact_type": "FUNCTIONAL_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "挟み込み判定",
+      "target_element_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000012"
+      },
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "behavior_summary": "電流としきい値から挟み込みを判定する",
+      "inputs": [
+        {
+          "name": "MotorCurrent",
+          "interface_spec_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          }
+        },
+        {
+          "name": "CurrentThreshold",
+          "data": {
+            "name": "CurrentThreshold",
+            "data_type": "FLOAT32",
+            "unit": "A",
+            "initial_value": 8.0
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "o"
+        }
+      ]
+    }
+  ]
+}

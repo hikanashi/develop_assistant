@@ -1,0 +1,56 @@
+{
+  "valid": [
+    {
+      "artifact_type": "PHYSICAL_CONNECTOR",
+      "process": "SYS.3",
+      "name": "CAN接続",
+      "owner_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000052"
+      },
+      "connector_kind": "ASSEMBLY",
+      "medium": "CAN",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000050"
+        },
+        "port": "CAN_H"
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000052"
+        },
+        "port": "CAN_H"
+      },
+      "interface_spec_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000021"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "PHYSICAL_CONNECTOR",
+      "process": "SYS.3",
+      "name": "x",
+      "owner_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000052"
+      },
+      "connector_kind": "ASSEMBLY",
+      "medium": "TELEPATHY",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000050"
+        },
+        "port": "a"
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000050"
+        },
+        "port": "b"
+      },
+      "interface_spec_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000021"
+      }
+    }
+  ]
+}

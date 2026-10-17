@@ -1,0 +1,65 @@
+{
+  "valid": [
+    {
+      "artifact_type": "PHYSICAL_BLOCK",
+      "process": "SYS.3",
+      "name": "ウィンドウECU基板",
+      "domain": "HARDWARE",
+      "block_kind": "PCB",
+      "parent_block_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000052"
+      },
+      "hw_attributes": {
+        "manufacturer": "A社"
+      },
+      "allocated_function_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        }
+      ]
+    },
+    {
+      "artifact_type": "PHYSICAL_BLOCK",
+      "process": "SYS.3",
+      "name": "WindowCtrl",
+      "domain": "SOFTWARE",
+      "block_kind": "APPLICATION_SWC",
+      "sw_attributes": {
+        "layer": "APPLICATION",
+        "asset_origin": "REUSED"
+      },
+      "ports": [
+        {
+          "name": "MotorCurrent",
+          "direction": "IN"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "PHYSICAL_BLOCK",
+      "process": "SYS.3",
+      "name": "x",
+      "domain": "HARDWARE",
+      "block_kind": "APPLICATION_SWC"
+    },
+    {
+      "artifact_type": "PHYSICAL_BLOCK",
+      "process": "SYS.3",
+      "name": "x",
+      "domain": "SOFTWARE",
+      "block_kind": "MCU"
+    },
+    {
+      "artifact_type": "PHYSICAL_BLOCK",
+      "process": "SYS.3",
+      "name": "x",
+      "domain": "HARDWARE",
+      "block_kind": "MCU",
+      "sw_attributes": {
+        "layer": "OS"
+      }
+    }
+  ]
+}
