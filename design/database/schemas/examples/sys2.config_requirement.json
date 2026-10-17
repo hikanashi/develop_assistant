@@ -1,0 +1,83 @@
+{
+  "valid": [
+    {
+      "artifact_type": "CONFIG_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "CanIf設定",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "bsw_module": "CanIf",
+      "autosar_release": "R22-11",
+      "config_items": [
+        {
+          "container_path": "/CanIf/CanIfInitCfg/CanIfInitHohCfg",
+          "parameter": "CanIfHrhRangeRxPduRangeCanIdType",
+          "value_type": "ENUM",
+          "value": "STANDARD"
+        },
+        {
+          "container_path": "/CanIf/CanIfPublicCfg",
+          "parameter": "CanIfPublicTxBuffering",
+          "value_type": "BOOLEAN",
+          "value": false,
+          "config_class": "PRE_COMPILE"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "CONFIG_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "bsw_module": "canif",
+      "config_items": [
+        {
+          "container_path": "/a",
+          "parameter": "p",
+          "value_type": "INTEGER",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "artifact_type": "CONFIG_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "bsw_module": "Com",
+      "config_items": [
+        {
+          "container_path": "/a",
+          "parameter": "p",
+          "value_type": "INTEGER",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "artifact_type": "CONFIG_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "bsw_module": "Com",
+      "config_items": []
+    }
+  ]
+}

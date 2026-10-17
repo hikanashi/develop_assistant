@@ -1,0 +1,32 @@
+{
+  "valid": [
+    {
+      "artifact_type": "SYSTEM",
+      "process": "SYS.1",
+      "name": "パワーウィンドウECU",
+      "purpose": "ウィンドウの開閉を制御する",
+      "system_level": "SYSTEM_OF_INTEREST",
+      "operational_environment": [
+        {
+          "name": "動作温度",
+          "min": -40,
+          "max": 85,
+          "unit": "degC"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "SYSTEM",
+      "process": "SYS.2",
+      "name": "x",
+      "purpose": "y"
+    },
+    {
+      "artifact_type": "SYSTEM",
+      "process": "SYS.1",
+      "name": "x"
+    }
+  ]
+}

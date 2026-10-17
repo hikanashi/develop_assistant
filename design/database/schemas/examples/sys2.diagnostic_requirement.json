@@ -1,0 +1,284 @@
+{
+  "valid": [
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "VIN",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "DID",
+      "identifier": "0xF190",
+      "did": {
+        "data_elements": [
+          {
+            "name": "VIN",
+            "data_type": "UINT8_N",
+            "size_bytes": 17,
+            "endianness": "OPAQUE",
+            "use_port": "USE_DATA_SYNCH_CLIENT_SERVER",
+            "read_function": "Rte_Call_DataServices_VIN_ReadData"
+          }
+        ],
+        "read": {
+          "sessions": [
+            {
+              "name": "DefaultSession",
+              "session_id": "0x01"
+            }
+          ]
+        },
+        "write": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "ウィンドウ初期化",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "RID",
+      "identifier": "0x0301",
+      "rid": {
+        "execution_mode": "ASYNCHRONOUS",
+        "use_port": true,
+        "access": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        },
+        "start": {
+          "in_signals": [
+            {
+              "name": "Mode",
+              "data_type": "UINT8",
+              "size_bytes": 1
+            }
+          ]
+        },
+        "request_results": {
+          "out_signals": [
+            {
+              "name": "Result",
+              "data_type": "UINT8",
+              "size_bytes": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "DID",
+      "identifier": "0xF190"
+    },
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "DID",
+      "identifier": "0xF190",
+      "did": {
+        "data_elements": [
+          {
+            "name": "VIN",
+            "data_type": "UINT8_N",
+            "size_bytes": 17,
+            "endianness": "OPAQUE",
+            "use_port": "USE_DATA_SYNCH_CLIENT_SERVER",
+            "read_function": "Rte_Call_DataServices_VIN_ReadData"
+          }
+        ],
+        "read": {
+          "sessions": [
+            {
+              "name": "DefaultSession",
+              "session_id": "0x01"
+            }
+          ]
+        },
+        "write": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        }
+      },
+      "rid": {
+        "access": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        },
+        "start": {}
+      }
+    },
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "DID",
+      "identifier": "F190",
+      "did": {
+        "data_elements": [
+          {
+            "name": "VIN",
+            "data_type": "UINT8_N",
+            "size_bytes": 17,
+            "endianness": "OPAQUE",
+            "use_port": "USE_DATA_SYNCH_CLIENT_SERVER",
+            "read_function": "Rte_Call_DataServices_VIN_ReadData"
+          }
+        ],
+        "read": {
+          "sessions": [
+            {
+              "name": "DefaultSession",
+              "session_id": "0x01"
+            }
+          ]
+        },
+        "write": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "RID",
+      "identifier": "0x0301",
+      "rid": {
+        "access": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+      "process": "SYS.2",
+      "name": "x",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "diag_kind": "DID",
+      "identifier": "0xF190",
+      "did": {
+        "data_elements": [
+          {
+            "name": "a",
+            "data_type": "UINT8",
+            "size_bytes": 1
+          }
+        ],
+        "read": {
+          "sessions": [
+            {
+              "name": "ExtendedSession",
+              "session_id": "0x03"
+            }
+          ],
+          "security_levels": [
+            {
+              "name": "Level1",
+              "level": 1
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

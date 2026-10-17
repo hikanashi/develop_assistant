@@ -1,0 +1,85 @@
+{
+  "valid": [
+    {
+      "artifact_type": "DIAGRAM_VIEW",
+      "process": "SYS.2",
+      "name": "アクティビティ図レイアウト",
+      "diagram_type": "ACTIVITY",
+      "context_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "nodes": [
+        {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000011"
+          },
+          "x": 100,
+          "y": 80,
+          "width": 120,
+          "height": 40
+        }
+      ],
+      "edges": [
+        {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000020"
+          },
+          "waypoints": [
+            {
+              "x": 160,
+              "y": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_type": "DIAGRAM_VIEW",
+      "process": "SYS.3",
+      "name": "状態遷移図レイアウト",
+      "diagram_type": "STATE_MACHINE",
+      "context_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000040"
+      },
+      "nodes": [
+        {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000040"
+          },
+          "local_id": "S_IDLE",
+          "x": 0,
+          "y": 0
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "DIAGRAM_VIEW",
+      "process": "SYS.2",
+      "name": "x",
+      "diagram_type": "ACTIVITY",
+      "context_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "nodes": [
+        {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000011"
+          },
+          "x": 1
+        }
+      ]
+    },
+    {
+      "artifact_type": "DIAGRAM_VIEW",
+      "process": "SYS.4",
+      "name": "x",
+      "diagram_type": "ACTIVITY",
+      "context_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "nodes": []
+    }
+  ]
+}

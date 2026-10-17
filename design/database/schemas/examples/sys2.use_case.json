@@ -1,0 +1,77 @@
+{
+  "valid": [
+    {
+      "artifact_type": "USE_CASE",
+      "process": "SYS.2",
+      "name": "ウィンドウを閉じる",
+      "system_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "primary_actor_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000002"
+        }
+      ],
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "trigger": "ドライバーが閉スイッチを押す",
+      "preconditions": [
+        "IGN ON"
+      ],
+      "main_flow": [
+        "スイッチ入力を受け付ける",
+        "挟み込みを判定する",
+        "モーターを駆動する"
+      ],
+      "alternative_flows": [
+        {
+          "name": "挟み込み",
+          "condition": "異物を検知",
+          "steps": [
+            "停止して反転する"
+          ]
+        }
+      ],
+      "extends": [
+        {
+          "use_case_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000005"
+          },
+          "extension_point": "挟み込み検知"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "USE_CASE",
+      "process": "SYS.2",
+      "name": "x",
+      "system_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "primary_actor_refs": [],
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ]
+    },
+    {
+      "artifact_type": "USE_CASE",
+      "process": "SYS.2",
+      "name": "x",
+      "system_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "primary_actor_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000002"
+        }
+      ]
+    }
+  ]
+}

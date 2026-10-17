@@ -1,0 +1,145 @@
+{
+  "valid": [
+    {
+      "artifact_type": "INTERFACE_SPEC",
+      "process": "SYS.2",
+      "name": "スイッチ入力",
+      "abstraction_level": "ACTION",
+      "interface_kind": "DATA_FLOW",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000011"
+        },
+        "port": "out"
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000012"
+        },
+        "port": "in"
+      },
+      "items": [
+        {
+          "name": "WindowSwitchCmd",
+          "data_type": "ENUM",
+          "enum_values": [
+            {
+              "value": 0,
+              "label": "NEUTRAL"
+            },
+            {
+              "value": 1,
+              "label": "UP"
+            },
+            {
+              "value": 2,
+              "label": "DOWN"
+            }
+          ]
+        }
+      ],
+      "communication": {
+        "pattern": "PERIODIC",
+        "period_ms": 10
+      }
+    },
+    {
+      "artifact_type": "INTERFACE_SPEC",
+      "process": "SYS.3",
+      "name": "位置通知",
+      "abstraction_level": "LOGICAL",
+      "interface_kind": "DATA_FLOW",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        }
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000041"
+        }
+      },
+      "items": [
+        {
+          "name": "Position",
+          "data_type": "UINT16",
+          "unit": "mm",
+          "range": {
+            "min": 0,
+            "max": 500
+          },
+          "resolution": 0.5
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "INTERFACE_SPEC",
+      "process": "SYS.2",
+      "name": "x",
+      "abstraction_level": "ACTION",
+      "interface_kind": "DATA_FLOW",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000011"
+        }
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000012"
+        }
+      },
+      "items": []
+    },
+    {
+      "artifact_type": "INTERFACE_SPEC",
+      "process": "SYS.2",
+      "name": "x",
+      "abstraction_level": "ACTION",
+      "interface_kind": "DATA_FLOW",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000011"
+        }
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000012"
+        }
+      },
+      "items": [
+        {
+          "name": "e",
+          "data_type": "ENUM"
+        }
+      ]
+    },
+    {
+      "artifact_type": "INTERFACE_SPEC",
+      "process": "SYS.2",
+      "name": "x",
+      "abstraction_level": "ACTION",
+      "interface_kind": "DATA_FLOW",
+      "source": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000011"
+        }
+      },
+      "target": {
+        "element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000012"
+        }
+      },
+      "items": [
+        {
+          "name": "a",
+          "data_type": "UINT8"
+        }
+      ],
+      "communication": {
+        "pattern": "PERIODIC"
+      }
+    }
+  ]
+}

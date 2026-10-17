@@ -1,0 +1,143 @@
+{
+  "valid": [
+    {
+      "artifact_type": "SEQUENCE_DIAGRAM",
+      "process": "SYS.3",
+      "name": "閉動作と挟み込み",
+      "use_case_ref": {
+        "record_id": "00000000-0000-4000-8000-000000000004"
+      },
+      "lifelines": [
+        {
+          "lifeline_id": "L_DRV",
+          "name": "ドライバー",
+          "represents_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000002"
+          }
+        },
+        {
+          "lifeline_id": "L_CTRL",
+          "name": "制御機能",
+          "represents_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000040"
+          }
+        },
+        {
+          "lifeline_id": "L_MOTOR",
+          "name": "モーター駆動",
+          "represents_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000041"
+          }
+        }
+      ],
+      "events": [
+        {
+          "event_type": "MESSAGE",
+          "name": "閉要求",
+          "message_kind": "ASYNC",
+          "from_lifeline_id": "L_DRV",
+          "to_lifeline_id": "L_CTRL"
+        },
+        {
+          "event_type": "FRAGMENT",
+          "operator": "ALT",
+          "operands": [
+            {
+              "guard": "挟み込み検知",
+              "events": [
+                {
+                  "event_type": "MESSAGE",
+                  "name": "反転指令",
+                  "message_kind": "SYNC_CALL",
+                  "from_lifeline_id": "L_CTRL",
+                  "to_lifeline_id": "L_MOTOR",
+                  "interface_spec_ref": {
+                    "record_id": "00000000-0000-4000-8000-000000000021"
+                  },
+                  "max_latency_ms": 100
+                }
+              ]
+            },
+            {
+              "guard": "else",
+              "events": [
+                {
+                  "event_type": "MESSAGE",
+                  "name": "正転指令",
+                  "message_kind": "SYNC_CALL",
+                  "from_lifeline_id": "L_CTRL",
+                  "to_lifeline_id": "L_MOTOR"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "SEQUENCE_DIAGRAM",
+      "process": "SYS.3",
+      "name": "x",
+      "lifelines": [
+        {
+          "lifeline_id": "L1",
+          "name": "a",
+          "represents_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000002"
+          }
+        }
+      ],
+      "events": [
+        {
+          "event_type": "MESSAGE",
+          "name": "m",
+          "message_kind": "ASYNC",
+          "from_lifeline_id": "L1",
+          "to_lifeline_id": "L1"
+        }
+      ]
+    },
+    {
+      "artifact_type": "SEQUENCE_DIAGRAM",
+      "process": "SYS.3",
+      "name": "x",
+      "lifelines": [
+        {
+          "lifeline_id": "L1",
+          "name": "a",
+          "represents_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000002"
+          }
+        },
+        {
+          "lifeline_id": "L2",
+          "name": "b",
+          "represents_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000040"
+          }
+        }
+      ],
+      "events": [
+        {
+          "event_type": "FRAGMENT",
+          "operator": "ALT",
+          "operands": [
+            {
+              "events": [
+                {
+                  "event_type": "MESSAGE",
+                  "name": "m",
+                  "message_kind": "PING",
+                  "from_lifeline_id": "L1",
+                  "to_lifeline_id": "L2"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

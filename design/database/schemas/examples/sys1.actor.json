@@ -1,0 +1,35 @@
+{
+  "valid": [
+    {
+      "artifact_type": "ACTOR",
+      "process": "SYS.1",
+      "name": "ドライバー",
+      "actor_type": "HUMAN",
+      "role": "スイッチ操作",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "00000000-0000-4000-8000-000000000003"
+        }
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "artifact_type": "ACTOR",
+      "process": "SYS.1",
+      "name": "x",
+      "actor_type": "ROBOT"
+    },
+    {
+      "artifact_type": "ACTOR",
+      "process": "SYS.1",
+      "name": "x",
+      "actor_type": "HUMAN",
+      "stakeholder_requirement_refs": [
+        {
+          "record_id": "not-a-uuid"
+        }
+      ]
+    }
+  ]
+}
