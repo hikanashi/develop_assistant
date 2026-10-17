@@ -79,6 +79,7 @@ ENV-001〜006 の構成を、AWS を使わずにローカルで再現する。
 |---|---|---|---|
 | Adminer | DB の内容確認 (Web GUI) | Apache-2.0 / GPL-2.0 | ENV-014 を満たす。Compose のサービスとして起動する |
 | psycopg 3 | PostgreSQL ドライバ | LGPL-3.0 | 動的リンクで利用する |
+| jsonschema (4.x) | JSON Schema (draft 2020-12) の検証 | MIT | ENV-022・ENV-023 を満たす。バックエンドの依存に追加する。メタスキーマ検証 (`Draft202012Validator.check_schema`) にも使う |
 | pytest | テスト | MIT | 開発用依存 |
 | ruff | Lint・フォーマット | MIT | 開発用依存 |
 
@@ -111,6 +112,43 @@ ENV-001〜006 の構成を、AWS を使わずにローカルで再現する。
 
 - Adminer (`http://localhost:8080`) をブラウザで開く。サーバー `db` に接続済みの状態で、`.env` の接続情報を入力してログインする。
 - ターミナルから `psql` で確認することもできる。
+
+### 4.3 JSON スキーマによる jsonb 列の定義と検証 (ENV-021〜ENV-024)
+
+ユーザーが JSON スキーマを動的に変更できるよう、jsonb 列の構造はアプリケーションコードやマイグレーションに固定せず、`JSON_SCHEMA` テーブルのデータとして定義する。
+
+| ID | 要件 |
+|---|---|
+| ENV-021 | `JSON_SCHEMA` テーブル以外のテーブルに含まれる jsonb 列 (現状は `CONTENT_REVISION.content_json`) の構造は、`JSON_SCHEMA.schema_json` に格納した JSON Schema で定義する。jsonb 列の構造をモデル ([backend/app/models.py](../../backend/app/models.py)) やマイグレーションで定義しない。jsonb 列を持つテーブルは、適用する `JSON_SCHEMA` の行を `schema_id` で参照する。 |
+| ENV-022 | レコードの追加・更新時 (REST API・MCP ツールの両方) に、バックエンドが jsonb 列の値を対応する `JSON_SCHEMA.schema_json` で検証する。検証を通過した場合にのみデータベースを更新し、通過しなかった場合は何も書き込まない。検証は REST と MCP で共通の処理 (`services.py`) として実装し、DB への書き込みと同一トランザクションで行う。 |
+| ENV-023 | JSON スキーマの検証でエラーが発生した場合、バックエンドは更新を拒否し、エラーの詳細を要求元に応答する。応答には、使用したスキーマの識別情報 (`schema_id`、`schema_key`、`schema_version`) と、違反ごとの詳細 (違反箇所の JSON Pointer、違反した制約、メッセージ) をすべて含める。あわせて、スキーマを再取得する手段 (API・MCP ツール) を示す。これにより、呼び出し元 (AI または人間) が最新のスキーマを再取得し、入力を自己修正して再送できる。 |
+| ENV-024 | JSON スキーマの編集手順を [backend/README.md](../../backend/README.md) に記載する。 |
+
+JSON スキーマの扱いは次のとおりとする。
+
+- JSON スキーマの仕様は draft 2020-12 とする ([design/database/json-schema-design.md](../database/json-schema-design.md))。
+- 登録済みの `JSON_SCHEMA` 行は更新・削除できない (整合性ルール8)。スキーマの変更は、同じ `schema_key` で `schema_version` を増やした新しい行の追加として行う。既存のリビジョンは作成時点の `schema_id` を参照し続ける。
+- スキーマの追加・変更はデータの投入 (`backend/seed/*.json` またはAPI) で行い、Alembic のマイグレーションや再デプロイを要さない。
+- `JSON_SCHEMA` へ登録する `schema_json` 自体も、登録前に JSON Schema のメタスキーマで検証する。不正なスキーマは登録しない。
+- 検証エラーの応答は REST では HTTP 422 とし、MCP ではツールのエラーとして、同じ内容を構造化データで返す。
+
+エラー応答の例:
+
+```json
+{
+  "error": "json_schema_validation_failed",
+  "schema": { "schema_id": "...", "schema_key": "sys.artifact", "schema_version": 1 },
+  "errors": [
+    {
+      "path": "/artifact_type",
+      "schema_path": "/properties/artifact_type/enum",
+      "validator": "enum",
+      "message": "'UNKNOWN' is not one of ['sys2.use_case', '...']"
+    }
+  ],
+  "hint": "スキーマを再取得し、errors の path を修正して再送してください"
+}
+```
 
 ## 5. Docker Compose 構成
 
@@ -196,3 +234,4 @@ compose/
 | 5 | 初期投入データの編集手順 |
 | 4 | DB の内容確認・編集手順 |
 | 6 | スキーマ変更手順 |
+| 7 | JSON スキーマの編集手順 (ENV-024) |
