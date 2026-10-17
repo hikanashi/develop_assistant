@@ -9,6 +9,8 @@ from app.config import DATABASE_URL
 
 @pytest.fixture
 def conn():
+    if DATABASE_URL is None:
+        pytest.skip("DB の接続情報がない (ファイルストア) ため PostgreSQL のテストはスキップ")
     engine = create_engine(DATABASE_URL)
     try:
         connection = engine.connect()

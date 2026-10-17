@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import uuid
 from collections.abc import Callable
 from typing import Any
@@ -10,6 +11,7 @@ from sqlalchemy import text
 from sqlmodel import Session
 
 from app import services
+from app.config import LOCALDATA_DIR, STORE_MODE
 from app.db import engine, session_scope
 from app.schemas import (
     FeatureDomain,
@@ -47,7 +49,9 @@ def _encode(value: Any) -> Any:
 
 @mcp.tool
 def db_version() -> str:
-    """接続中のPostgreSQLのバージョンを返す。"""
+    """接続中のPostgreSQLのバージョンを返す。.env がないファイルストアでは、その旨を返す。"""
+    if STORE_MODE == "file":
+        return f"file store (SQLite {sqlite3.sqlite_version}, {LOCALDATA_DIR})"
     with engine.connect() as conn:
         return conn.execute(text("select version()")).scalar_one()
 

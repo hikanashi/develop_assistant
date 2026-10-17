@@ -2,6 +2,14 @@ from sqlmodel import SQLModel
 
 import app.models  # noqa: F401
 from alembic import context
+from app.config import STORE_MODE
+
+if STORE_MODE == "file":
+    raise SystemExit(
+        "DB の接続情報 (.env) が未設定のため、ファイルストア (backend/localdata) で動作します。"
+        "マイグレーションは PostgreSQL 用です。.env を作成してから実行してください"
+    )
+
 from app.db import engine
 
 target_metadata = SQLModel.metadata

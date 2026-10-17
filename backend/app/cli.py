@@ -42,11 +42,18 @@ def main() -> None:
             print(f"{len(changed)} ファイルを更新しました" if changed else "変更はありません")
         return
 
+    from app.config import LOCALDATA_DIR, STORE_MODE
     from app.db import engine
     from app.seed_io import export_seed, load_seed
 
+    if STORE_MODE == "file":
+        from app import localstore
+
     if args.command == "seed":
-        print(f"{load_seed(engine, args.dir)} 行を投入しました")
+        count = load_seed(engine, args.dir)
+        if STORE_MODE == "file":
+            localstore.persist(engine, LOCALDATA_DIR)
+        print(f"{count} 行を投入しました")
     else:
         print(f"{export_seed(engine, args.output)} 行を {args.output} へ出力しました")
 

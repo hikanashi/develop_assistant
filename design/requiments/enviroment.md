@@ -27,6 +27,7 @@
 | `BACKEND_DIR` | `backend` | バックエンドのソース、マイグレーション、初期データを置くディレクトリ |
 | `SEED_DIR` | `backend/seed` | 初期投入データ (JSON) の配置先 |
 | `README_FILE` | `backend/README.md` | 手順書。リポジトリ直下の `README.md` は変更しない |
+| `LOCALDATA_DIR` | `backend/localdata` | `.env` がない場合の保存先 (ファイルストア。ENV-040〜ENV-042)。`BACKEND_DIR` 配下に置き、Git にコミットしない |
 | `DB_ENGINE` | PostgreSQL 18 | データベース。本番・ローカルとも同じバージョンを使う (ENV-006) |
 | `PROD_DB` | Amazon RDS for PostgreSQL | 本番のデータベース |
 | `BACKEND_STACK` | FastAPI (REST API) と FastMCP (MCP サーバー) | バックエンドの実装方式。ライブラリは [3.1](#31-バックエンド) |
@@ -158,6 +159,10 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-035 | JSON スキーマが対応するレコードや列は、各 Markdown ファイルに記載された内容に従う。Markdown の記載から特定できない場合 (対応するテーブル・列・`record_type` などが書かれていない、複数の解釈ができる、複数の Markdown 間で矛盾するなど) は、推測せず、ユーザーに確認してから進める。 |
 | ENV-036 | サンプルデータは、`ER_DESIGN_FILE` のデータベーススキーマに従って生成する。全テーブルを対象とし、外部キー・CHECK 制約・整合性ルールを満たす (詳細は [4.5](#サンプルデータ-env-027-env-036))。 |
 | ENV-037 | 環境の実装後に、データベースにサンプルデータが格納されていることまで確認する ([4.5](#45-構築後の確認-env-037))。 |
+| ENV-040 | `.env` がなく、DB の接続情報 (`DATABASE_URL`、`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) がいずれも未設定の場合、バックエンドは PostgreSQL に接続せず、`LOCALDATA_DIR` (`backend/localdata`) 以下に JSON 形式でデータを格納する (ファイルストア)。接続情報の一部だけが設定されている場合は、設定ミスとして不足している変数名を示してエラーにする。 |
+| ENV-041 | ファイルストアには、DB のレコードと同じ内容を格納する。形式は、テーブルごとに 1 ファイル (`LOCALDATA_DIR/<テーブル名>.json`) とし、中身は行の配列 (`[{"列名": 値, ...}, ...]`。値の表現は [4.1](#41-初期データ-env-013-env-015) の初期データと同じ) とする。対象は `ER_DESIGN_FILE` の全テーブルである。 |
+| ENV-042 | ファイルストアでも、REST API・MCP ツール・JSON スキーマの検証 (ENV-022・ENV-023) は PostgreSQL のときと同じ処理で動く。データの書き込み (コミット) のたびに `LOCALDATA_DIR` のファイルを更新する。外部キー・CHECK 制約・一意制約は適用する。PostgreSQL のトリガーによる変更禁止 (不変性の保護) は適用しない。詳細は [4.6](#46-env-がない場合のファイルストア-env-040env-042)。 |
+| ENV-043 | `.env` がない状態でリポジトリのルートから `docker compose up` を実行しても、`env file ... not found` のエラーにならない。`.env` がない場合は PostgreSQL を起動せず (`db` は待機のみ、`backend-init` は何もせず終了)、バックエンドがファイルストアで起動する。`.env` がある場合は、`.env` に追加の設定なしで従来どおり PostgreSQL を起動する。 |
 
 `JSON_SCHEMA_DESIGN_DIR` 以下の各 Markdown (JSON スキーマの設計ファイル) には、少なくとも次の内容を記載する。記載がなければ、ENV-035 に従いユーザーに確認する。
 
@@ -329,6 +334,31 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 - 認証情報・データベース名を含めない (ENV-019)。
 - 本リポジトリの現行の `sys.artifact` は `ARTIFACT` 用のため、サンプルの `CONTENT_RECORD` は `record_type` = `ARTIFACT` とする。`FEATURE` 用のスキーマを追加した際は、あわせてサンプルを追加する。`REVISION_PARENT` は、同一レコードの 2 つのリビジョンを `PREVIOUS` で結ぶ行とする。製品の `base_platform_version_id` は、サンプルのプラットフォームバージョンを参照する。
 
+### 4.6 .env がない場合のファイルストア (ENV-040〜ENV-042)
+
+`.env` がない環境 (DB を用意せず、バックエンドだけを動かして試す場合など) のための保存先である。通常の開発・本番は PostgreSQL を使う。
+
+| 項目 | 内容 |
+|---|---|
+| 切り替え条件 | `DATABASE_URL`・`POSTGRES_USER`・`POSTGRES_PASSWORD`・`POSTGRES_DB` がすべて未設定のとき (`.env` を読み込んでいないとき)。1 つでも設定されていれば PostgreSQL を使う。`.env` を作成して設定すれば PostgreSQL に切り替わる (`LOCALDATA_DIR` のデータは引き継がれない) |
+| 保存先 | `LOCALDATA_DIR` (既定 `backend/localdata`)。環境変数 `LOCALDATA_DIR` で変更できる (テスト用)。`BACKEND_DIR` からの相対位置で決める (コンテナの `/app` でも同じ。4.1 と同じ理由) |
+| 形式 | `LOCALDATA_DIR/<テーブル名>.json`。行の配列。DB のレコードと同じ列・値 (ENV-041) |
+| 初回起動 | `LOCALDATA_DIR` に JSON ファイルがなければ、`SEED_DIR/*.json` を全テーブルへ投入し、`LOCALDATA_DIR` に書き出す。以降は `LOCALDATA_DIR` を正とし、`SEED_DIR` を再投入しない |
+| 更新 | レコードの追加などをコミットするたびに、内容が変わったファイルを書き出す。ファイルは手で編集できる (次回起動時に読み込まれる) |
+| 初期状態へ戻す | `LOCALDATA_DIR` を削除して再起動する |
+| `docker compose up` | `.env` がなくても失敗せず、`backend` がファイルストアで起動する (ENV-043)。`db` は PostgreSQL を起動せず待機するだけ (ヘルスチェックは正常とする)、`backend-init` は何もせず終了する。`.env` を作成すると PostgreSQL を使う (5.1・5.2) |
+| コマンド | `python -m app.cli seed` は `LOCALDATA_DIR` へ投入して書き出す。`export` は `LOCALDATA_DIR` の内容を出力する。`alembic` は PostgreSQL 用のため、ファイルストアでは実行せずエラーとする |
+| Git | `LOCALDATA_DIR` は `.gitignore` に追加し、コミットしない |
+| 実装 | 追加ライブラリは使わない。メモリ上の SQLite (Python 標準の `sqlite3` と SQLAlchemy) にモデル定義からテーブルを作り、サービス層は PostgreSQL と同じコードを使う |
+| 制約 | PostgreSQL のトリガーは適用しない (現行の API は更新・削除を提供しないため影響しない)。複数プロセスからの同時利用、大量データ向けではない。PostgreSQL 固有の機能は使えない |
+
+ファイルストアの確認 (ENV-042):
+
+1. `.env` と DB の環境変数がない状態でバックエンドを起動すると、`LOCALDATA_DIR` に `ER_DESIGN_FILE` の全テーブルの JSON ファイルが作られ、すべてのファイルに 1 行以上ある。
+2. REST API・MCP ツールでレコードを追加すると、対応するファイルに行が追加される。JSON スキーマの検証に失敗した場合は何も書き込まれない。
+3. バックエンドを再起動しても、追加したレコードが残り、サンプルデータが重複しない。
+4. `backend/tests/test_localstore.py` のテストが通る。
+
 ## 5. Docker Compose 構成
 
 ### 5.1 ファイル構成 (ENV-016, ENV-017, ENV-019, ENV-020, ENV-031)
@@ -354,7 +384,8 @@ COMPOSE_DIR/
 - 新しいサービスは `COMPOSE_DIR/<名前>.yaml` として追加し、`COMPOSE_ENTRY` の `include` に 1 行加える。
 - 追加するファイルは、既存のサービス名・ボリューム名と重複させない。ポートは `127.0.0.1:${XXX_PORT:-既定値}:内部ポート` の形式にそろえる。
 - 秘密の値は `.env` に変数を追加し、`env_file: [../.env]` で読み込む。`.env.example` にも変数名と仮の値を追記する。
-- `.env` がない場合、Dev Container は `.env.example` から自動作成する。ルートの `docker compose` は `.env` がないと失敗するため、`cp .env.example .env` が必要。
+- `.env` がない場合、Dev Container は `.env.example` から自動作成する。
+- ルートの `docker compose up` は、`.env` がなくても失敗しない (ENV-043)。`.env` がない場合は PostgreSQL を起動せず、バックエンドが `LOCALDATA_DIR` のファイルストアで動く ([4.6](#46-env-がない場合のファイルストア-env-040env-042))。Compose ファイルは `.env` の有無を `env_file` の `required: false` と、認証情報の環境変数が空かどうかで切り替える。`.env` に追加の設定は不要である。
 
 ### 5.2 サービス
 
@@ -365,6 +396,14 @@ COMPOSE_DIR/
 | `backend` | REST API (`/`)、MCP (`/mcp/`)。ヘルスチェック: `/health` | `BACKEND_PORT` の既定値 | `BACKEND_PORT` |
 
 起動順序: `db` (healthy) → `backend-init` (正常終了) → `backend` (healthy)
+
+`.env` がない場合 (認証情報の環境変数が空の場合) は次のとおり動き、`backend` は待たずにファイルストアで起動する (ENV-043)。
+
+- `db`: `env_file` を `required: false` で読み込み、PostgreSQL を起動せず待機する。ヘルスチェックは、`POSTGRES_PASSWORD` が空なら正常とする。
+- `backend-init`: `POSTGRES_USER` が空なら、マイグレーションと初期データ投入を行わずに終了する。
+- `backend`: `env_file` を `required: false` で読み込む。
+
+プロファイルは使わない。`.env` を作成するだけで、従来どおり PostgreSQL を起動する。
 
 フロントエンドのサービス (`web`) がある場合は、`backend` (healthy) の後に起動する。`web.yaml` の `depends_on` で定義する (ENV-039)。
 
@@ -404,7 +443,7 @@ COMPOSE_DIR/
 
 | 章 | 内容 |
 |---|---|
-| 1 | 環境構築手順 (Dev Container、ルートの `docker compose up`、Compose ファイルの追加方法、フロントエンドとの共存) |
+| 1 | 環境構築手順 (Dev Container、ルートの `docker compose up`、Compose ファイルの追加方法、フロントエンドとの共存、`.env` がない場合のファイルストア) |
 | 2 | GitHub Copilot での MCP 設定手順 (1 の環境構築手順の直後に記載する) |
 | 3 | 初期投入データの編集手順 (生成ツールの使い方を含む。ENV-028) |
 | 4 | DB の内容確認手順 (VS Code の PostgreSQL 拡張機能の手順を含む。ENV-014。[4.5 構築後の確認](#45-構築後の確認-env-037) の手順も含む) |

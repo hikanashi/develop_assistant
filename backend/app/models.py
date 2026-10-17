@@ -5,7 +5,7 @@ CHECK制約・部分一意インデックス・不変性トリガーなどモデ
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import (
@@ -14,11 +14,13 @@ from sqlalchemy import (
     DateTime,
     ForeignKeyConstraint,
     Index,
+    TypeDecorator,
     UniqueConstraint,
     func,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.compiler import compiles
 from sqlmodel import Field, SQLModel
 
 # 制約名を固定し、マイグレーションの差分を安定させる
@@ -29,6 +31,29 @@ SQLModel.metadata.naming_convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s",
     "pk": "pk_%(table_name)s",
 }
+
+
+@compiles(JSONB, "sqlite")
+def _jsonb_as_json_on_sqlite(type_: JSONB, compiler: Any, **kw: Any) -> str:
+    """ファイルストア (SQLite) では JSONB を JSON として扱う。"""
+    return "JSON"
+
+
+class UTCDateTime(TypeDecorator[datetime]):
+    """タイムゾーン付きの日時。SQLite はタイムゾーンを保持しないため、UTC に統一して保存する。"""
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect: Any) -> datetime | None:
+        if value is not None and value.tzinfo is not None:
+            return value.astimezone(UTC)
+        return value
+
+    def process_result_value(self, value: datetime | None, dialect: Any) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value
 
 
 def uuid_pk(**kwargs: Any) -> Any:
@@ -44,7 +69,7 @@ def timestamp(*, nullable: bool = False, **kwargs: Any) -> Any:
     column_kwargs: dict[str, Any] = {"nullable": nullable}
     if not nullable:
         column_kwargs["server_default"] = func.now()
-    return Field(sa_type=DateTime(timezone=True), sa_column_kwargs=column_kwargs, **kwargs)
+    return Field(sa_type=UTCDateTime(), sa_column_kwargs=column_kwargs, **kwargs)
 
 
 class Customer(SQLModel, table=True):
@@ -133,6 +158,7 @@ class ContentRecord(SQLModel, table=True):
             "logical_key",
             unique=True,
             postgresql_where=text("origin_platform_id IS NOT NULL"),
+            sqlite_where=text("origin_platform_id IS NOT NULL"),
         ),
         Index(
             "uq_content_record_product_logical_key",
@@ -140,12 +166,14 @@ class ContentRecord(SQLModel, table=True):
             "logical_key",
             unique=True,
             postgresql_where=text("origin_product_id IS NOT NULL"),
+            sqlite_where=text("origin_product_id IS NOT NULL"),
         ),
         Index(
             "uq_content_record_common_logical_key",
             "logical_key",
             unique=True,
             postgresql_where=text("origin_platform_id IS NULL AND origin_product_id IS NULL"),
+            sqlite_where=text("origin_platform_id IS NULL AND origin_product_id IS NULL"),
         ),
     )
 

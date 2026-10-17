@@ -220,3 +220,6 @@ __marimo__/
 # Next.js
 node_modules/
 .next/
+
+# .env がない場合のファイルストア (DBレコードと同じ内容のJSON)
+backend/localdata/

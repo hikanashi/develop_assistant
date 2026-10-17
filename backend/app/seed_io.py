@@ -12,12 +12,19 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Engine, MetaData, Table, select
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlmodel import SQLModel
+
+import app.models  # noqa: F401  (SQLModel.metadata にテーブルを登録する)
 
 EXCLUDED_TABLES = {"alembic_version"}
 
 
 def _reflect(engine: Engine) -> MetaData:
+    if engine.dialect.name == "sqlite":
+        # ファイルストア。SQLite からの reflect では UUID・日時の型が失われるため、モデルの定義を使う
+        return SQLModel.metadata
     metadata = MetaData()
     metadata.reflect(bind=engine)
     for name in EXCLUDED_TABLES:
@@ -33,7 +40,9 @@ def _coerce(table: Table, row: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"{table.name} に列 {key} がありません")
         if isinstance(value, str):
             try:
-                py_type = table.c[key].type.python_type
+                column_type = table.c[key].type
+                # TypeDecorator (UTCDateTime) は内側の型から Python の型を得る
+                py_type = getattr(column_type, "impl_instance", column_type).python_type
             except NotImplementedError:
                 py_type = None
             if py_type is UUID:
@@ -56,8 +65,14 @@ def load_seed(engine: Engine, seed_dir: Path) -> int:
     for path in files:
         for table_name, rows in json.loads(path.read_text(encoding="utf-8")).items():
             data.setdefault(table_name, []).extend(rows)
+    return insert_rows(engine, data)
+
+
+def insert_rows(engine: Engine, data: dict[str, list[dict[str, Any]]]) -> int:
+    """{"テーブル名": [行...]} を外部キー順に投入する。主キー重複の行はスキップする。"""
     if not data:
         return 0
+    insert = sqlite_insert if engine.dialect.name == "sqlite" else postgres_insert
 
     metadata = _reflect(engine)
     unknown = set(data) - set(metadata.tables)
@@ -87,14 +102,20 @@ def _json_default(value: Any) -> Any:
     raise TypeError(f"JSON化できない型: {type(value)}")
 
 
-def export_seed(engine: Engine, output: Path) -> int:
-    """全テーブルを外部キー順にJSONへ出力する。出力はそのままシードとして使える。"""
+def read_tables(engine: Engine) -> dict[str, list[dict[str, Any]]]:
+    """全テーブルの行を外部キー順に取得する。"""
     metadata = _reflect(engine)
     data: dict[str, list[dict[str, Any]]] = {}
     with engine.connect() as conn:
         for table in metadata.sorted_tables:
             rows = conn.execute(select(table)).mappings().all()
             data[table.name] = [dict(row) for row in rows]
+    return data
+
+
+def export_seed(engine: Engine, output: Path) -> int:
+    """全テーブルを外部キー順にJSONへ出力する。出力はそのままシードとして使える。"""
+    data = read_tables(engine)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(data, ensure_ascii=False, indent=2, default=_json_default) + "\n",
