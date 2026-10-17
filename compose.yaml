@@ -1,0 +1,6 @@
+name: develop_assistant_local
+
+include:
+  - compose/db.yaml
+  - compose/backend.yaml
+

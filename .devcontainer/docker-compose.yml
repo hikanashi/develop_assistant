@@ -1,0 +1,40 @@
+name: develop_assistant_local
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+      - ../.git:/workspace/.git:ro
+      - backend_localdata:/workspace/backend/localdata
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    command: ["sleep", "infinity"]
+    user: vscode
+
+  db:
+    extends:
+      file: ../compose/db.yaml
+      service: db
+
+volumes:
+  pgdata:
+  backend_localdata:
+

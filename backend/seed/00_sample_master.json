@@ -1,0 +1,122 @@
+{
+  "CONTENT_RECORD": [
+    {
+      "feature_domain": null,
+      "logical_key": "sample.master.system",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "10000000-0000-4000-8000-000000000006",
+      "record_type": "ARTIFACT"
+    }
+  ],
+  "CONTENT_REVISION": [
+    {
+      "change_reason": "サンプル初版",
+      "content_json": {
+        "artifact_type": "SYSTEM",
+        "name": "パワーウィンドウECU",
+        "operational_environment": [
+          {
+            "max": 85,
+            "min": -40,
+            "name": "動作温度",
+            "unit": "degC"
+          }
+        ],
+        "process": "SYS.1",
+        "purpose": "ウィンドウの開閉を制御する",
+        "system_level": "SYSTEM_OF_INTEREST"
+      },
+      "record_id": "10000000-0000-4000-8000-000000000006",
+      "revision_id": "10000000-0000-4000-8000-000000000007",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "サンプル更新",
+      "content_json": {
+        "artifact_type": "SYSTEM",
+        "name": "パワーウィンドウECU",
+        "operational_environment": [
+          {
+            "max": 85,
+            "min": -40,
+            "name": "動作温度",
+            "unit": "degC"
+          }
+        ],
+        "process": "SYS.1",
+        "purpose": "ウィンドウの開閉を制御する",
+        "system_level": "SYSTEM_OF_INTEREST"
+      },
+      "record_id": "10000000-0000-4000-8000-000000000006",
+      "revision_id": "10000000-0000-4000-8000-000000000008",
+      "revision_no": 2,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    }
+  ],
+  "CUSTOMER": [
+    {
+      "customer_id": "10000000-0000-4000-8000-000000000001",
+      "name": "サンプル顧客"
+    }
+  ],
+  "PLATFORM": [
+    {
+      "name": "サンプルプラットフォーム",
+      "platform_id": "10000000-0000-4000-8000-000000000002"
+    }
+  ],
+  "PLATFORM_SCHEMA_BINDING": [
+    {
+      "platform_id": "10000000-0000-4000-8000-000000000002",
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    }
+  ],
+  "PLATFORM_VERSION": [
+    {
+      "platform_id": "10000000-0000-4000-8000-000000000002",
+      "platform_version_id": "10000000-0000-4000-8000-000000000003",
+      "released_at": "2026-01-01T00:00:00Z",
+      "version_label": "1.0.0"
+    }
+  ],
+  "PLATFORM_VERSION_CONTENT": [
+    {
+      "platform_version_id": "10000000-0000-4000-8000-000000000003",
+      "record_id": "10000000-0000-4000-8000-000000000006",
+      "revision_id": "10000000-0000-4000-8000-000000000007"
+    }
+  ],
+  "PRODUCT": [
+    {
+      "base_platform_version_id": "10000000-0000-4000-8000-000000000003",
+      "customer_id": "10000000-0000-4000-8000-000000000001",
+      "name": "サンプル製品",
+      "product_id": "10000000-0000-4000-8000-000000000004"
+    }
+  ],
+  "PRODUCT_VERSION": [
+    {
+      "product_id": "10000000-0000-4000-8000-000000000004",
+      "product_version_id": "10000000-0000-4000-8000-000000000005",
+      "released_at": "2026-02-01T00:00:00Z",
+      "version_label": "1.0.0"
+    }
+  ],
+  "PRODUCT_VERSION_CONTENT": [
+    {
+      "product_version_id": "10000000-0000-4000-8000-000000000005",
+      "record_id": "10000000-0000-4000-8000-000000000006",
+      "revision_id": "10000000-0000-4000-8000-000000000008"
+    }
+  ],
+  "REVISION_PARENT": [
+    {
+      "ordinal": 1,
+      "parent_revision_id": "10000000-0000-4000-8000-000000000007",
+      "relationship": "PREVIOUS",
+      "revision_id": "10000000-0000-4000-8000-000000000008"
+    }
+  ]
+}

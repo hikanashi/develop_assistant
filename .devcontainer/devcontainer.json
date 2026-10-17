@@ -1,0 +1,25 @@
+{
+  "name": "develop_assistant",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "runServices": ["db", "app"],
+  "workspaceFolder": "/workspace",
+  "initializeCommand": "sh .devcontainer/initialize.sh",
+  "postCreateCommand": "sh .devcontainer/post-create.sh",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-ossdata.vscode-pgsql"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.useEnvFile": true,
+        "python.envFile": "${workspaceFolder}/.env"
+      }
+    }
+  }
+}
+

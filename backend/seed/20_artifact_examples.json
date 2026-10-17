@@ -1,0 +1,1480 @@
+{
+  "CONTENT_RECORD": [
+    {
+      "feature_domain": null,
+      "logical_key": "sys.diagram_view.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "91e4cbd7-bb8a-5d11-8265-a4c21b6970b9",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys.diagram_view.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "44efb71c-2064-5e92-b87c-8b6f9a2d0759",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys1.actor.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "419be884-eda4-592a-bcf0-c51a7acdb2a8",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys1.stakeholder_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "01ad53fe-e71e-5978-97b9-d2a3aac07fb6",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys1.system.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "3c5d0987-6f6a-5ece-8bc4-75d7c5c0d68d",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys1.system_boundary.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "d0305b83-5606-5db8-bb0b-6bc39a8ad527",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.activity_element.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "c0073785-b88c-5b29-87a5-c941440b4df7",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.activity_element.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "df09c053-e31e-560b-ad95-71e3d0c99de2",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.activity_element.003",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "31b7f793-d69b-5699-82ae-0996a97f54d9",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.activity_element.004",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "1fcdbbf0-0c89-560c-9bc5-06c95914b85d",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.activity_element.005",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "2b274ee3-4d69-5dd8-aaeb-1094dc8a422f",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.config_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "8a731dfb-6474-5bb1-8e6f-f0af90af3374",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.diagnostic_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "d645cae4-0e5c-5172-84b8-eaf86910d49c",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.diagnostic_requirement.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "c34ec353-a7a6-514b-b52a-4d08865d117f",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.functional_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "075470ea-dd17-5aa3-8eef-50f0b993527b",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.functional_requirement.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "1e397db8-4c89-555a-ac65-31d3c5a9144d",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.functional_requirement.003",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "ce8b8c6a-6cca-5224-a66d-5800266b4d7d",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.interface_spec.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "39cb8d3e-89ea-52f7-9fe2-e72203b031ad",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.interface_spec.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "1fabc0fe-dadc-59fa-aaec-ac4f4fab18ce",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.nonfunctional_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "5eaa2d02-d7e1-5cb1-bcda-16ab21f7db96",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys2.use_case.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "6641345f-5398-5184-b0f7-d08e40de1a4e",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.hardware_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "3caffcb9-dbde-5729-b52a-2d7d40ebf2ac",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.hsi.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "2162bf23-b2fd-508f-acdb-8e5cec4f8c4e",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.hsi.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "0e0dd009-44e7-535c-8089-83c7ce428b9e",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.logical_connector.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "163291c0-cb4d-596f-ab8e-5d8eb7734f0f",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.logical_function.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "dea149e6-6f93-5882-9d43-be09c1e85aa3",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.physical_block.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "17f430e0-461f-577d-a307-d8cf78f26adc",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.physical_block.002",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "798bf8e7-f7da-550d-9353-adad47d664b8",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.physical_connector.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "27eddcfb-1d91-5a13-a641-880424ca2bf5",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.sequence_diagram.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "a9228e8c-b6d5-5f50-8ae0-ec5ceef7601e",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.software_requirement.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "48eaca26-dda3-5ce7-b53d-a471ac83a004",
+      "record_type": "ARTIFACT"
+    },
+    {
+      "feature_domain": null,
+      "logical_key": "sys3.state_machine.001",
+      "origin_platform_id": null,
+      "origin_product_id": null,
+      "record_id": "7bfbdf33-6208-50be-bdb4-c660b0e2017c",
+      "record_type": "ARTIFACT"
+    }
+  ],
+  "CONTENT_REVISION": [
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "DIAGRAM_VIEW",
+        "context_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        },
+        "diagram_type": "ACTIVITY",
+        "edges": [
+          {
+            "element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000020"
+            },
+            "waypoints": [
+              {
+                "x": 160,
+                "y": 120
+              }
+            ]
+          }
+        ],
+        "name": "アクティビティ図レイアウト",
+        "nodes": [
+          {
+            "element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000011"
+            },
+            "height": 40,
+            "width": 120,
+            "x": 100,
+            "y": 80
+          }
+        ],
+        "process": "SYS.2"
+      },
+      "record_id": "91e4cbd7-bb8a-5d11-8265-a4c21b6970b9",
+      "revision_id": "51e78b27-8670-57d9-ba9b-40a3bce67b80",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "DIAGRAM_VIEW",
+        "context_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        },
+        "diagram_type": "STATE_MACHINE",
+        "name": "状態遷移図レイアウト",
+        "nodes": [
+          {
+            "element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000040"
+            },
+            "local_id": "S_IDLE",
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "process": "SYS.3"
+      },
+      "record_id": "44efb71c-2064-5e92-b87c-8b6f9a2d0759",
+      "revision_id": "53b3d76c-173f-597d-9822-5c2aa6b97323",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "actor_type": "HUMAN",
+        "artifact_type": "ACTOR",
+        "name": "ドライバー",
+        "process": "SYS.1",
+        "role": "スイッチ操作",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ]
+      },
+      "record_id": "419be884-eda4-592a-bcf0-c51a7acdb2a8",
+      "revision_id": "3f4840b2-be7a-512a-9472-61deb7de29ec",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "STAKEHOLDER_REQUIREMENT",
+        "category": "SAFETY",
+        "name": "挟み込み防止",
+        "priority": "MUST",
+        "process": "SYS.1",
+        "sources": [
+          {
+            "locator": "Sheet2 R15",
+            "source_type": "CUSTOMER_INPUT",
+            "storage_ref": {
+              "blob_key": "oem-a/spec-v1.xlsx",
+              "container": "customer-inputs"
+            }
+          }
+        ],
+        "stakeholder": {
+          "name": "OEM-A",
+          "stakeholder_type": "CUSTOMER_OEM"
+        },
+        "statement": "ウィンドウ閉動作中に異物を検知したら直ちに停止し反転する",
+        "status": "DRAFT"
+      },
+      "record_id": "01ad53fe-e71e-5978-97b9-d2a3aac07fb6",
+      "revision_id": "bc60190f-368b-538b-b515-6adcdcfdc0b3",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "SYSTEM",
+        "name": "パワーウィンドウECU",
+        "operational_environment": [
+          {
+            "max": 85,
+            "min": -40,
+            "name": "動作温度",
+            "unit": "degC"
+          }
+        ],
+        "process": "SYS.1",
+        "purpose": "ウィンドウの開閉を制御する",
+        "system_level": "SYSTEM_OF_INTEREST"
+      },
+      "record_id": "3c5d0987-6f6a-5ece-8bc4-75d7c5c0d68d",
+      "revision_id": "befd966e-1793-5983-9b82-f7239aaa5cb0",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "SYSTEM_BOUNDARY",
+        "external_entities": [
+          {
+            "actor_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000002"
+            },
+            "exchanges": [
+              {
+                "direction": "TO_SYSTEM",
+                "exchange_kind": "USER_OPERATION",
+                "name": "開閉要求"
+              }
+            ],
+            "relationship": "操作"
+          }
+        ],
+        "in_scope": [
+          "ウィンドウ駆動制御"
+        ],
+        "name": "パワーウィンドウECU境界",
+        "out_of_scope": [
+          "スイッチ内部回路"
+        ],
+        "process": "SYS.1",
+        "system_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000001"
+        }
+      },
+      "record_id": "d0305b83-5606-5db8-bb0b-6bc39a8ad527",
+      "revision_id": "d1db9f57-b45d-5874-8c8c-4763a0cbbaba",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "ACTIVITY_ELEMENT",
+        "name": "INITIAL",
+        "next": [
+          {
+            "target_element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000011"
+            }
+          }
+        ],
+        "node_type": "INITIAL",
+        "process": "SYS.2",
+        "use_case_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        }
+      },
+      "record_id": "c0073785-b88c-5b29-87a5-c941440b4df7",
+      "revision_id": "e61af599-78dc-53a5-a18d-fc5184c8bc80",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "ACTIVITY_ELEMENT",
+        "name": "スイッチ入力を受け付ける",
+        "next": [
+          {
+            "flow_kind": "OBJECT",
+            "interface_spec_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000020"
+            },
+            "target_element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000012"
+            }
+          }
+        ],
+        "node_type": "ACTION",
+        "performer_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "process": "SYS.2",
+        "use_case_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        }
+      },
+      "record_id": "df09c053-e31e-560b-ad95-71e3d0c99de2",
+      "revision_id": "f547a4ec-6d89-53d0-90ae-c5835b3af82c",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "ACTIVITY_ELEMENT",
+        "name": "挟み込み検知?",
+        "next": [
+          {
+            "guard": "検知",
+            "target_element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000013"
+            }
+          },
+          {
+            "guard": "未検知",
+            "target_element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000014"
+            }
+          }
+        ],
+        "node_type": "DECISION",
+        "performer_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "process": "SYS.2",
+        "use_case_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        }
+      },
+      "record_id": "31b7f793-d69b-5699-82ae-0996a97f54d9",
+      "revision_id": "67b5c7da-5491-5fd9-81e3-31318fa939b9",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "ACTIVITY_ELEMENT",
+        "event": "SwitchPressed",
+        "name": "ACCEPT_EVENT",
+        "next": [
+          {
+            "target_element_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000011"
+            }
+          }
+        ],
+        "node_type": "ACCEPT_EVENT",
+        "performer_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "process": "SYS.2",
+        "use_case_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        }
+      },
+      "record_id": "1fcdbbf0-0c89-560c-9bc5-06c95914b85d",
+      "revision_id": "cf9c08b8-4488-5367-a6de-4cd0957f78b4",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "ACTIVITY_ELEMENT",
+        "name": "ACTIVITY_FINAL",
+        "node_type": "ACTIVITY_FINAL",
+        "process": "SYS.2",
+        "use_case_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        }
+      },
+      "record_id": "2b274ee3-4d69-5dd8-aaeb-1094dc8a422f",
+      "revision_id": "4d652674-29b0-56e9-b48b-aee0886d9d6e",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "CONFIG_REQUIREMENT",
+        "autosar_release": "R22-11",
+        "bsw_module": "CanIf",
+        "config_items": [
+          {
+            "container_path": "/CanIf/CanIfInitCfg/CanIfInitHohCfg",
+            "parameter": "CanIfHrhRangeRxPduRangeCanIdType",
+            "value": "STANDARD",
+            "value_type": "ENUM"
+          },
+          {
+            "config_class": "PRE_COMPILE",
+            "container_path": "/CanIf/CanIfPublicCfg",
+            "parameter": "CanIfPublicTxBuffering",
+            "value": false,
+            "value_type": "BOOLEAN"
+          }
+        ],
+        "name": "CanIf設定",
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ]
+      },
+      "record_id": "8a731dfb-6474-5bb1-8e6f-f0af90af3374",
+      "revision_id": "1a24c429-b4c2-5b87-a10f-b93be00ba32e",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+        "diag_kind": "DID",
+        "did": {
+          "data_elements": [
+            {
+              "data_type": "UINT8_N",
+              "endianness": "OPAQUE",
+              "name": "VIN",
+              "read_function": "Rte_Call_DataServices_VIN_ReadData",
+              "size_bytes": 17,
+              "use_port": "USE_DATA_SYNCH_CLIENT_SERVER"
+            }
+          ],
+          "read": {
+            "sessions": [
+              {
+                "name": "DefaultSession",
+                "session_id": "0x01"
+              }
+            ]
+          },
+          "write": {
+            "security_levels": [
+              {
+                "level": 1,
+                "name": "Level1"
+              }
+            ],
+            "sessions": [
+              {
+                "name": "ExtendedSession",
+                "session_id": "0x03"
+              }
+            ]
+          }
+        },
+        "identifier": "0xF190",
+        "name": "VIN",
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ]
+      },
+      "record_id": "d645cae4-0e5c-5172-84b8-eaf86910d49c",
+      "revision_id": "6686a5e4-5dde-5592-ad43-a997e3f01875",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "DIAGNOSTIC_REQUIREMENT",
+        "diag_kind": "RID",
+        "identifier": "0x0301",
+        "name": "ウィンドウ初期化",
+        "process": "SYS.2",
+        "rid": {
+          "access": {
+            "security_levels": [
+              {
+                "level": 1,
+                "name": "Level1"
+              }
+            ],
+            "sessions": [
+              {
+                "name": "ExtendedSession",
+                "session_id": "0x03"
+              }
+            ]
+          },
+          "execution_mode": "ASYNCHRONOUS",
+          "request_results": {
+            "out_signals": [
+              {
+                "data_type": "UINT8",
+                "name": "Result",
+                "size_bytes": 1
+              }
+            ]
+          },
+          "start": {
+            "in_signals": [
+              {
+                "data_type": "UINT8",
+                "name": "Mode",
+                "size_bytes": 1
+              }
+            ]
+          },
+          "use_port": true
+        },
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ]
+      },
+      "record_id": "c34ec353-a7a6-514b-b52a-4d08865d117f",
+      "revision_id": "cd938730-64d0-5388-9b25-97dae67319e5",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "FUNCTIONAL_REQUIREMENT",
+        "behavior_summary": "電流としきい値から挟み込みを判定する",
+        "inputs": [
+          {
+            "interface_spec_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000020"
+            },
+            "name": "MotorCurrent"
+          },
+          {
+            "data": {
+              "data_type": "FLOAT32",
+              "initial_value": 8.0,
+              "name": "CurrentThreshold",
+              "unit": "A"
+            },
+            "name": "CurrentThreshold"
+          }
+        ],
+        "name": "挟み込み判定",
+        "outputs": [
+          {
+            "data": {
+              "data_type": "BOOLEAN",
+              "name": "PinchDetected"
+            },
+            "name": "PinchDetected"
+          }
+        ],
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ],
+        "target_element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000012"
+        },
+        "transformations": [
+          {
+            "decision_table": {
+              "default_then": [
+                {
+                  "output": "PinchDetected",
+                  "value": false
+                }
+              ],
+              "hit_policy": "FIRST",
+              "rules": [
+                {
+                  "rule_no": 1,
+                  "then": [
+                    {
+                      "output": "PinchDetected",
+                      "value": true
+                    }
+                  ],
+                  "when": [
+                    {
+                      "input": "MotorCurrent",
+                      "operator": ">=",
+                      "value": 8.0
+                    }
+                  ]
+                },
+                {
+                  "rule_no": 2,
+                  "then": [
+                    {
+                      "output": "PinchDetected",
+                      "value": false
+                    }
+                  ],
+                  "when": [
+                    {
+                      "input": "MotorCurrent",
+                      "operator": "BETWEEN",
+                      "value": [
+                        0,
+                        8
+                      ]
+                    },
+                    {
+                      "input": "Mode",
+                      "operator": "ANY"
+                    }
+                  ]
+                }
+              ]
+            },
+            "kind": "DECISION_TABLE",
+            "output": "PinchDetected"
+          }
+        ]
+      },
+      "record_id": "075470ea-dd17-5aa3-8eef-50f0b993527b",
+      "revision_id": "03bb5a7c-b702-5017-a67e-53de473438be",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "FUNCTIONAL_REQUIREMENT",
+        "behavior_summary": "ADC値を電流に換算する",
+        "inputs": [
+          {
+            "interface_spec_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000020"
+            },
+            "name": "AdcRaw"
+          }
+        ],
+        "name": "電流換算",
+        "outputs": [
+          {
+            "interface_spec_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000021"
+            },
+            "name": "MotorCurrent"
+          }
+        ],
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ],
+        "target_element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000011"
+        },
+        "transformations": [
+          {
+            "formula": {
+              "expression": "MotorCurrent = (AdcRaw - 2048) * 0.01",
+              "saturation": {
+                "max": 30,
+                "min": 0
+              },
+              "unit": "A"
+            },
+            "kind": "FORMULA",
+            "output": "MotorCurrent"
+          }
+        ]
+      },
+      "record_id": "1e397db8-4c89-555a-ac65-31d3c5a9144d",
+      "revision_id": "7cd036cc-e8df-509e-aaf4-f0573ba2e398",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "FUNCTIONAL_REQUIREMENT",
+        "behavior_summary": "開始",
+        "inputs": [],
+        "name": "開始",
+        "outputs": [],
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ],
+        "target_element_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000010"
+        }
+      },
+      "record_id": "ce8b8c6a-6cca-5224-a66d-5800266b4d7d",
+      "revision_id": "fa29fc2e-f0a9-5318-95ce-e15f19f6860b",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "abstraction_level": "ACTION",
+        "artifact_type": "INTERFACE_SPEC",
+        "communication": {
+          "pattern": "PERIODIC",
+          "period_ms": 10
+        },
+        "interface_kind": "DATA_FLOW",
+        "items": [
+          {
+            "data_type": "ENUM",
+            "enum_values": [
+              {
+                "label": "NEUTRAL",
+                "value": 0
+              },
+              {
+                "label": "UP",
+                "value": 1
+              },
+              {
+                "label": "DOWN",
+                "value": 2
+              }
+            ],
+            "name": "WindowSwitchCmd"
+          }
+        ],
+        "name": "スイッチ入力",
+        "process": "SYS.2",
+        "source": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000011"
+          },
+          "port": "out"
+        },
+        "target": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000012"
+          },
+          "port": "in"
+        }
+      },
+      "record_id": "39cb8d3e-89ea-52f7-9fe2-e72203b031ad",
+      "revision_id": "be081561-b6ab-5c89-a681-6316cdf6d5e0",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "abstraction_level": "LOGICAL",
+        "artifact_type": "INTERFACE_SPEC",
+        "interface_kind": "DATA_FLOW",
+        "items": [
+          {
+            "data_type": "UINT16",
+            "name": "Position",
+            "range": {
+              "max": 500,
+              "min": 0
+            },
+            "resolution": 0.5,
+            "unit": "mm"
+          }
+        ],
+        "name": "位置通知",
+        "process": "SYS.3",
+        "source": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000040"
+          }
+        },
+        "target": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000041"
+          }
+        }
+      },
+      "record_id": "1fabc0fe-dadc-59fa-aaec-ac4f4fab18ce",
+      "revision_id": "e1ed8c8c-5c88-55b6-8ff1-130158b98431",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "NONFUNCTIONAL_REQUIREMENT",
+        "measurement_condition": "全温度範囲",
+        "metric": {
+          "name": "検知から停止までの時間",
+          "operator": "<=",
+          "target_value": 100,
+          "unit": "ms"
+        },
+        "name": "挟み込み停止時間",
+        "nfr_category": "TIMING",
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ],
+        "statement": "挟み込み検知から停止までを規定時間内とする",
+        "verification_method": "TEST"
+      },
+      "record_id": "5eaa2d02-d7e1-5cb1-bcda-16ab21f7db96",
+      "revision_id": "8c7a43d0-ef5b-55b0-bc54-ba1e34dc9674",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "alternative_flows": [
+          {
+            "condition": "異物を検知",
+            "name": "挟み込み",
+            "steps": [
+              "停止して反転する"
+            ]
+          }
+        ],
+        "artifact_type": "USE_CASE",
+        "extends": [
+          {
+            "extension_point": "挟み込み検知",
+            "use_case_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000005"
+            }
+          }
+        ],
+        "main_flow": [
+          "スイッチ入力を受け付ける",
+          "挟み込みを判定する",
+          "モーターを駆動する"
+        ],
+        "name": "ウィンドウを閉じる",
+        "preconditions": [
+          "IGN ON"
+        ],
+        "primary_actor_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000002"
+          }
+        ],
+        "process": "SYS.2",
+        "stakeholder_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000003"
+          }
+        ],
+        "system_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000001"
+        },
+        "trigger": "ドライバーが閉スイッチを押す"
+      },
+      "record_id": "6641345f-5398-5184-b0f7-d08e40de1a4e",
+      "revision_id": "346127db-757e-58bc-a049-b440f1ceb27d",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "HARDWARE_REQUIREMENT",
+        "hw_category": "ELECTRICAL",
+        "name": "r",
+        "parameters": [
+          {
+            "condition": "全温度範囲",
+            "max": 100,
+            "name": "最大値",
+            "unit": "ms"
+          }
+        ],
+        "process": "SYS.3",
+        "statement": "規定の要件を満たすこと",
+        "system_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000030"
+          }
+        ],
+        "target_block_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000050"
+          }
+        ]
+      },
+      "record_id": "3caffcb9-dbde-5729-b52a-2d7d40ebf2ac",
+      "revision_id": "cfd15fcc-83fd-57bf-9d3c-97dc0d91c3e5",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "HSI",
+        "conversion": {
+          "expression": "I[A] = (AdcRaw - 2048) * 0.01",
+          "unit": "A"
+        },
+        "direction": "HW_TO_SW",
+        "hardware_block_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000050"
+        },
+        "hardware_side": {
+          "peripheral": "ADC0 CH3",
+          "pin_name": "CUR_SENSE",
+          "voltage_max_v": 3.3,
+          "voltage_min_v": 0
+        },
+        "name": "モーター電流入力",
+        "process": "SYS.3",
+        "safe_state": 0,
+        "signal_type": "ANALOG_IN",
+        "software_block_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000051"
+        },
+        "software_side": {
+          "bsw_module": "Adc",
+          "channel": "AdcChannel_3",
+          "data": {
+            "data_type": "UINT16",
+            "name": "AdcRaw",
+            "range": {
+              "max": 4095,
+              "min": 0
+            }
+          }
+        },
+        "timing": {
+          "period_ms": 1,
+          "response_time_ms": 2
+        }
+      },
+      "record_id": "2162bf23-b2fd-508f-acdb-8e5cec4f8c4e",
+      "revision_id": "d3b382a2-b22a-57fc-a2a3-c8c99095feeb",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "HSI",
+        "direction": "HW_TO_SW",
+        "hardware_block_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000050"
+        },
+        "hardware_side": {
+          "peripheral": "ADC0 CH3",
+          "pin_name": "CUR_SENSE",
+          "voltage_max_v": 3.3,
+          "voltage_min_v": 0
+        },
+        "name": "モーター電流入力",
+        "process": "SYS.3",
+        "safe_state": 0,
+        "signal_type": "DIGITAL_IN",
+        "software_block_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000051"
+        },
+        "software_side": {
+          "bsw_module": "Adc",
+          "channel": "AdcChannel_3",
+          "data": {
+            "data_type": "UINT16",
+            "name": "AdcRaw",
+            "range": {
+              "max": 4095,
+              "min": 0
+            }
+          }
+        },
+        "timing": {
+          "period_ms": 1,
+          "response_time_ms": 2
+        }
+      },
+      "record_id": "0e0dd009-44e7-535c-8089-83c7ce428b9e",
+      "revision_id": "5fc4cfa4-379f-5f3f-a6e7-a51deaced888",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "LOGICAL_CONNECTOR",
+        "connector_kind": "ASSEMBLY",
+        "interface_spec_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000021"
+        },
+        "name": "電流通知",
+        "owner_function_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        },
+        "process": "SYS.3",
+        "source": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000041"
+          },
+          "port": "MotorCurrent_out"
+        },
+        "target": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000042"
+          },
+          "port": "MotorCurrent_in"
+        }
+      },
+      "record_id": "163291c0-cb4d-596f-ab8e-5d8eb7734f0f",
+      "revision_id": "14e612ea-4fbd-56b6-a23c-a8f0c8311e8c",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "allocated_element_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000012"
+          }
+        ],
+        "allocated_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000030"
+          }
+        ],
+        "artifact_type": "LOGICAL_FUNCTION",
+        "name": "挟み込み検知機能",
+        "parent_function_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        },
+        "ports": [
+          {
+            "direction": "IN",
+            "interface_spec_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000021"
+            },
+            "name": "MotorCurrent"
+          }
+        ],
+        "process": "SYS.3"
+      },
+      "record_id": "dea149e6-6f93-5882-9d43-be09c1e85aa3",
+      "revision_id": "af4fecf4-5340-59db-a940-176fbefd6670",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "allocated_function_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000040"
+          }
+        ],
+        "artifact_type": "PHYSICAL_BLOCK",
+        "block_kind": "PCB",
+        "domain": "HARDWARE",
+        "hw_attributes": {
+          "manufacturer": "A社"
+        },
+        "name": "ウィンドウECU基板",
+        "parent_block_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000052"
+        },
+        "process": "SYS.3"
+      },
+      "record_id": "17f430e0-461f-577d-a307-d8cf78f26adc",
+      "revision_id": "2676a309-c641-59e1-aed1-2831671543a1",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "PHYSICAL_BLOCK",
+        "block_kind": "APPLICATION_SWC",
+        "domain": "SOFTWARE",
+        "name": "WindowCtrl",
+        "ports": [
+          {
+            "direction": "IN",
+            "name": "MotorCurrent"
+          }
+        ],
+        "process": "SYS.3",
+        "sw_attributes": {
+          "asset_origin": "REUSED",
+          "layer": "APPLICATION"
+        }
+      },
+      "record_id": "798bf8e7-f7da-550d-9353-adad47d664b8",
+      "revision_id": "98eb25f8-e11e-5d20-abcb-d810f1f90337",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "PHYSICAL_CONNECTOR",
+        "connector_kind": "ASSEMBLY",
+        "interface_spec_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000021"
+        },
+        "medium": "CAN",
+        "name": "CAN接続",
+        "owner_block_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000052"
+        },
+        "process": "SYS.3",
+        "source": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000050"
+          },
+          "port": "CAN_H"
+        },
+        "target": {
+          "element_ref": {
+            "record_id": "00000000-0000-4000-8000-000000000052"
+          },
+          "port": "CAN_H"
+        }
+      },
+      "record_id": "27eddcfb-1d91-5a13-a641-880424ca2bf5",
+      "revision_id": "86c7bb0b-266e-50c3-9925-6df0073af1da",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "SEQUENCE_DIAGRAM",
+        "events": [
+          {
+            "event_type": "MESSAGE",
+            "from_lifeline_id": "L_DRV",
+            "message_kind": "ASYNC",
+            "name": "閉要求",
+            "to_lifeline_id": "L_CTRL"
+          },
+          {
+            "event_type": "FRAGMENT",
+            "operands": [
+              {
+                "events": [
+                  {
+                    "event_type": "MESSAGE",
+                    "from_lifeline_id": "L_CTRL",
+                    "interface_spec_ref": {
+                      "record_id": "00000000-0000-4000-8000-000000000021"
+                    },
+                    "max_latency_ms": 100,
+                    "message_kind": "SYNC_CALL",
+                    "name": "反転指令",
+                    "to_lifeline_id": "L_MOTOR"
+                  }
+                ],
+                "guard": "挟み込み検知"
+              },
+              {
+                "events": [
+                  {
+                    "event_type": "MESSAGE",
+                    "from_lifeline_id": "L_CTRL",
+                    "message_kind": "SYNC_CALL",
+                    "name": "正転指令",
+                    "to_lifeline_id": "L_MOTOR"
+                  }
+                ],
+                "guard": "else"
+              }
+            ],
+            "operator": "ALT"
+          }
+        ],
+        "lifelines": [
+          {
+            "lifeline_id": "L_DRV",
+            "name": "ドライバー",
+            "represents_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000002"
+            }
+          },
+          {
+            "lifeline_id": "L_CTRL",
+            "name": "制御機能",
+            "represents_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000040"
+            }
+          },
+          {
+            "lifeline_id": "L_MOTOR",
+            "name": "モーター駆動",
+            "represents_ref": {
+              "record_id": "00000000-0000-4000-8000-000000000041"
+            }
+          }
+        ],
+        "name": "閉動作と挟み込み",
+        "process": "SYS.3",
+        "use_case_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000004"
+        }
+      },
+      "record_id": "a9228e8c-b6d5-5f50-8ae0-ec5ceef7601e",
+      "revision_id": "96dbcaa4-5d40-5699-8090-c527049d6b36",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "SOFTWARE_REQUIREMENT",
+        "name": "r",
+        "parameters": [
+          {
+            "condition": "全温度範囲",
+            "max": 100,
+            "name": "最大値",
+            "unit": "ms"
+          }
+        ],
+        "process": "SYS.3",
+        "statement": "規定の要件を満たすこと",
+        "sw_category": "TIMING",
+        "system_requirement_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000030"
+          }
+        ],
+        "target_block_refs": [
+          {
+            "record_id": "00000000-0000-4000-8000-000000000050"
+          }
+        ]
+      },
+      "record_id": "48eaca26-dda3-5ce7-b53d-a471ac83a004",
+      "revision_id": "3efd5de4-3f67-5bd8-a409-acab14006152",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    },
+    {
+      "change_reason": "JSON Schema 設計の正常例から生成",
+      "content_json": {
+        "artifact_type": "STATE_MACHINE",
+        "name": "ウィンドウ動作状態",
+        "owner_function_ref": {
+          "record_id": "00000000-0000-4000-8000-000000000040"
+        },
+        "process": "SYS.3",
+        "states": [
+          {
+            "kind": "INITIAL",
+            "name": "初期",
+            "state_id": "S_INIT"
+          },
+          {
+            "name": "停止中",
+            "state_id": "S_IDLE"
+          },
+          {
+            "do_activity": "モーター正転",
+            "name": "閉動作中",
+            "state_id": "S_CLOSING"
+          }
+        ],
+        "transitions": [
+          {
+            "source_state_id": "S_INIT",
+            "target_state_id": "S_IDLE",
+            "transition_id": "T1",
+            "trigger": {
+              "kind": "COMPLETION"
+            }
+          },
+          {
+            "effect": "モーター起動",
+            "guard": "IGN==ON",
+            "source_state_id": "S_IDLE",
+            "target_state_id": "S_CLOSING",
+            "transition_id": "T2",
+            "trigger": {
+              "event": "SwitchUp",
+              "kind": "SIGNAL"
+            }
+          }
+        ]
+      },
+      "record_id": "7bfbdf33-6208-50be-bdb4-c660b0e2017c",
+      "revision_id": "f7eb7430-af67-5249-9f6f-a2d18e82f1fa",
+      "revision_no": 1,
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721"
+    }
+  ]
+}

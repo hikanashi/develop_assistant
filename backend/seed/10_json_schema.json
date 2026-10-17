@@ -1,0 +1,3954 @@
+{
+  "JSON_SCHEMA": [
+    {
+      "feature_domain": null,
+      "record_type": "ARTIFACT",
+      "schema_id": "909c0690-88f4-5b33-b023-2a99f117b721",
+      "schema_json": {
+        "$defs": {
+          "Attachment": {
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "storage_ref": {
+                "$ref": "#/$defs/StorageRef"
+              },
+              "title": {
+                "$ref": "#/$defs/Text"
+              }
+            },
+            "required": [
+              "title",
+              "storage_ref"
+            ],
+            "type": "object"
+          },
+          "Base": {
+            "description": "全成果物に共通するプロパティ。リビジョン履歴・変更理由はDBの列で保持するため含めない。",
+            "properties": {
+              "attachments": {
+                "items": {
+                  "$ref": "#/$defs/Attachment"
+                },
+                "type": "array"
+              },
+              "description": {
+                "type": "string"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              },
+              "sources": {
+                "items": {
+                  "$ref": "#/$defs/Source"
+                },
+                "type": "array"
+              },
+              "status": {
+                "default": "DRAFT",
+                "enum": [
+                  "DRAFT",
+                  "IN_REVIEW",
+                  "APPROVED",
+                  "DEPRECATED"
+                ],
+                "type": "string"
+              },
+              "traces": {
+                "items": {
+                  "$ref": "#/$defs/Trace"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "DataItem": {
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "data_type": {
+                      "const": "ENUM"
+                    }
+                  },
+                  "required": [
+                    "data_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "enum_values"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "data_type": {
+                      "const": "STRUCT"
+                    }
+                  },
+                  "required": [
+                    "data_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "members"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "data_type": {
+                      "const": "ARRAY"
+                    }
+                  },
+                  "required": [
+                    "data_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "array_length"
+                  ]
+                }
+              }
+            ],
+            "description": "信号・データ項目の定義。",
+            "properties": {
+              "array_length": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "data_type": {
+                "enum": [
+                  "BOOLEAN",
+                  "UINT8",
+                  "UINT16",
+                  "UINT32",
+                  "UINT64",
+                  "SINT8",
+                  "SINT16",
+                  "SINT32",
+                  "SINT64",
+                  "FLOAT32",
+                  "FLOAT64",
+                  "ENUM",
+                  "STRING",
+                  "BYTES",
+                  "STRUCT",
+                  "ARRAY"
+                ],
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "enum_values": {
+                "items": {
+                  "$ref": "#/$defs/EnumValue"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "initial_value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              },
+              "invalid_value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              },
+              "members": {
+                "items": {
+                  "$ref": "#/$defs/DataItem"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              },
+              "offset": {
+                "type": "number"
+              },
+              "range": {
+                "$ref": "#/$defs/Range"
+              },
+              "resolution": {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "data_type"
+            ],
+            "type": "object"
+          },
+          "Endpoint": {
+            "additionalProperties": false,
+            "description": "接続・インタフェースの端点。portは要素内のポート名または入出力ピン名。",
+            "properties": {
+              "element_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "port": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "element_ref"
+            ],
+            "type": "object"
+          },
+          "EnumValue": {
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "label": {
+                "$ref": "#/$defs/Text"
+              },
+              "value": {
+                "type": [
+                  "integer",
+                  "string"
+                ]
+              }
+            },
+            "required": [
+              "value",
+              "label"
+            ],
+            "type": "object"
+          },
+          "HexId": {
+            "description": "16進数識別子（例: 0xF190）。",
+            "pattern": "^0x[0-9A-Fa-f]{1,8}$",
+            "type": "string"
+          },
+          "LocalId": {
+            "description": "成果物JSON内で一意なローカル識別子（状態ID、メッセージIDなど）。",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "Parameter": {
+            "additionalProperties": false,
+            "anyOf": [
+              {
+                "required": [
+                  "value"
+                ]
+              },
+              {
+                "required": [
+                  "min"
+                ]
+              },
+              {
+                "required": [
+                  "typ"
+                ]
+              },
+              {
+                "required": [
+                  "max"
+                ]
+              }
+            ],
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "max": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              },
+              "typ": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "Port": {
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "direction": {
+                "enum": [
+                  "IN",
+                  "OUT",
+                  "INOUT"
+                ],
+                "type": "string"
+              },
+              "interface_spec_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              }
+            },
+            "required": [
+              "name",
+              "direction"
+            ],
+            "type": "object"
+          },
+          "Range": {
+            "additionalProperties": false,
+            "minProperties": 1,
+            "properties": {
+              "max": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "RecordRef": {
+            "additionalProperties": false,
+            "description": "他の成果物レコードへの参照。revision_idを省略した場合、同一の製品／プラットフォームバージョン内で採用されているリビジョンを指す。",
+            "properties": {
+              "record_id": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "revision_id": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "required": [
+              "record_id"
+            ],
+            "type": "object"
+          },
+          "RecordRefList": {
+            "items": {
+              "$ref": "#/$defs/RecordRef"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "RequirementCommon": {
+            "description": "システム要件・分解要件に共通するプロパティ。",
+            "properties": {
+              "priority": {
+                "enum": [
+                  "MUST",
+                  "SHOULD",
+                  "COULD"
+                ],
+                "type": "string"
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "verification_criteria": {
+                "type": "string"
+              },
+              "verification_method": {
+                "enum": [
+                  "TEST",
+                  "ANALYSIS",
+                  "INSPECTION",
+                  "DEMONSTRATION",
+                  "REVIEW"
+                ],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "Source": {
+            "additionalProperties": false,
+            "anyOf": [
+              {
+                "required": [
+                  "record_ref"
+                ]
+              },
+              {
+                "required": [
+                  "storage_ref"
+                ]
+              },
+              {
+                "required": [
+                  "note"
+                ]
+              }
+            ],
+            "description": "この成果物の根拠となった入力（顧客入力物、不具合検出、内部指摘など）。",
+            "properties": {
+              "locator": {
+                "description": "参照箇所（章番号、ページ、シート名など）。",
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "record_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "source_type": {
+                "enum": [
+                  "CUSTOMER_INPUT",
+                  "DEFECT_REPORT",
+                  "INTERNAL_REVIEW",
+                  "STANDARD_OR_REGULATION",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "storage_ref": {
+                "$ref": "#/$defs/StorageRef"
+              }
+            },
+            "required": [
+              "source_type"
+            ],
+            "type": "object"
+          },
+          "StorageRef": {
+            "additionalProperties": false,
+            "description": "オブジェクトストレージ（Azure Blob Storage）上のバイナリ本体への参照。",
+            "properties": {
+              "blob_key": {
+                "$ref": "#/$defs/Text"
+              },
+              "container": {
+                "$ref": "#/$defs/Text"
+              },
+              "media_type": {
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-fA-F]{64}$",
+                "type": "string"
+              },
+              "size_bytes": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "version_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "container",
+              "blob_key"
+            ],
+            "type": "object"
+          },
+          "Text": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "Trace": {
+            "additionalProperties": false,
+            "description": "構造的な参照フィールドで表現しない補足的なトレーサビリティ。上流方向のみ保持し、下流は検索で求める。",
+            "properties": {
+              "rationale": {
+                "type": "string"
+              },
+              "relation": {
+                "enum": [
+                  "DERIVED_FROM",
+                  "REFINES",
+                  "SATISFIES",
+                  "ALLOCATED_FROM",
+                  "RELATED_TO"
+                ],
+                "type": "string"
+              },
+              "target": {
+                "$ref": "#/$defs/RecordRef"
+              }
+            },
+            "required": [
+              "relation",
+              "target"
+            ],
+            "type": "object"
+          },
+          "sys.diagram_view": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.1〜SYS.3 図（システム境界図、ユースケース図、アクティビティ図、ブロック図など）の表示レイアウト1件。図の意味はモデル要素の成果物が保持し、本成果物はブラウザ編集用の配置情報のみを保持する。",
+            "properties": {
+              "artifact_type": {
+                "const": "DIAGRAM_VIEW"
+              },
+              "context_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "図の対象（システム、ユースケース、論理機能、物理ブロックなど）。"
+              },
+              "diagram_type": {
+                "enum": [
+                  "SYSTEM_BOUNDARY",
+                  "USE_CASE",
+                  "ACTIVITY",
+                  "LOGICAL_BLOCK_DEFINITION",
+                  "LOGICAL_INTERNAL_BLOCK",
+                  "STATE_MACHINE",
+                  "SEQUENCE",
+                  "PHYSICAL_BLOCK_DEFINITION",
+                  "PHYSICAL_INTERNAL_BLOCK"
+                ],
+                "type": "string"
+              },
+              "edges": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "element_ref": {
+                      "$ref": "#/$defs/RecordRef"
+                    },
+                    "local_id": {
+                      "$ref": "#/$defs/LocalId"
+                    },
+                    "waypoints": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "element_ref"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "nodes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "element_ref": {
+                      "$ref": "#/$defs/RecordRef"
+                    },
+                    "height": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "local_id": {
+                      "$ref": "#/$defs/LocalId",
+                      "description": "状態など成果物内のローカルIDで表す要素を指す場合に指定する。"
+                    },
+                    "width": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "element_ref",
+                    "x",
+                    "y"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "process": {
+                "enum": [
+                  "SYS.1",
+                  "SYS.2",
+                  "SYS.3"
+                ]
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "diagram_type",
+              "context_ref",
+              "nodes"
+            ],
+            "title": "図のレイアウト",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys1.actor": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.1 システム境界の外側でシステムと相互作用する主体1件。",
+            "properties": {
+              "actor_type": {
+                "enum": [
+                  "HUMAN",
+                  "EXTERNAL_ECU",
+                  "EXTERNAL_SYSTEM",
+                  "SENSOR_OR_ACTUATOR",
+                  "ENVIRONMENT",
+                  "TIME"
+                ],
+                "type": "string"
+              },
+              "artifact_type": {
+                "const": "ACTOR"
+              },
+              "process": {
+                "const": "SYS.1"
+              },
+              "role": {
+                "description": "システムに対する役割。",
+                "type": "string"
+              },
+              "stakeholder_requirement_refs": {
+                "$ref": "#/$defs/RecordRefList"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "actor_type"
+            ],
+            "title": "アクター",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys1.stakeholder_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.1 利害関係者要求1件。",
+            "properties": {
+              "acceptance_criteria": {
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "artifact_type": {
+                "const": "STAKEHOLDER_REQUIREMENT"
+              },
+              "category": {
+                "enum": [
+                  "FUNCTIONAL",
+                  "PERFORMANCE",
+                  "SAFETY",
+                  "SECURITY",
+                  "DIAGNOSTIC",
+                  "REGULATORY",
+                  "QUALITY",
+                  "CONSTRAINT",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "priority": {
+                "enum": [
+                  "MUST",
+                  "SHOULD",
+                  "COULD"
+                ],
+                "type": "string"
+              },
+              "process": {
+                "const": "SYS.1"
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "stakeholder": {
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "$ref": "#/$defs/Text"
+                  },
+                  "role": {
+                    "type": "string"
+                  },
+                  "stakeholder_type": {
+                    "enum": [
+                      "CUSTOMER_OEM",
+                      "END_USER",
+                      "INTERNAL",
+                      "REGULATION",
+                      "SUPPLIER",
+                      "OTHER"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "stakeholder_type"
+                ],
+                "type": "object"
+              },
+              "statement": {
+                "$ref": "#/$defs/Text",
+                "description": "要求の記述。"
+              },
+              "system_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "対象システム。"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "statement",
+              "stakeholder"
+            ],
+            "title": "利害関係者要求",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys1.system": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.1 開発対象システム1件（ECUなど）。",
+            "properties": {
+              "artifact_type": {
+                "const": "SYSTEM"
+              },
+              "lifecycle_phases": {
+                "items": {
+                  "enum": [
+                    "DEVELOPMENT",
+                    "PRODUCTION",
+                    "OPERATION",
+                    "SERVICE",
+                    "DECOMMISSIONING"
+                  ],
+                  "type": "string"
+                },
+                "type": "array",
+                "uniqueItems": true
+              },
+              "operational_environment": {
+                "description": "使用環境の条件（温度、電圧、搭載位置など）。",
+                "items": {
+                  "$ref": "#/$defs/Parameter"
+                },
+                "type": "array"
+              },
+              "parent_system_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "process": {
+                "const": "SYS.1"
+              },
+              "purpose": {
+                "$ref": "#/$defs/Text",
+                "description": "システムの目的。"
+              },
+              "system_level": {
+                "enum": [
+                  "SYSTEM_OF_INTEREST",
+                  "SUBSYSTEM"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "purpose"
+            ],
+            "title": "システム",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys1.system_boundary": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.1 システム境界（システム境界図の内容）。システムと外部アクターの関係と交換する情報を定義する。",
+            "properties": {
+              "artifact_type": {
+                "const": "SYSTEM_BOUNDARY"
+              },
+              "assumptions": {
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "external_entities": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "actor_ref": {
+                      "$ref": "#/$defs/RecordRef"
+                    },
+                    "exchanges": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "description": {
+                            "type": "string"
+                          },
+                          "direction": {
+                            "enum": [
+                              "TO_SYSTEM",
+                              "FROM_SYSTEM",
+                              "BIDIRECTIONAL"
+                            ],
+                            "type": "string"
+                          },
+                          "exchange_kind": {
+                            "enum": [
+                              "DATA",
+                              "SIGNAL",
+                              "ENERGY",
+                              "MATERIAL",
+                              "USER_OPERATION",
+                              "OTHER"
+                            ],
+                            "type": "string"
+                          },
+                          "name": {
+                            "$ref": "#/$defs/Text"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "direction"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "relationship": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "actor_ref",
+                    "exchanges"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "in_scope": {
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "out_of_scope": {
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.1"
+              },
+              "system_ref": {
+                "$ref": "#/$defs/RecordRef"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "system_ref",
+              "external_entities"
+            ],
+            "title": "システム境界",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.activity_element": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "if": {
+                  "properties": {
+                    "node_type": {
+                      "enum": [
+                        "ACTION",
+                        "ACCEPT_EVENT",
+                        "SEND_SIGNAL"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "node_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "performer_ref"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "node_type": {
+                      "enum": [
+                        "ACCEPT_EVENT",
+                        "SEND_SIGNAL"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "node_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "event"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "node_type": {
+                      "enum": [
+                        "ACTIVITY_FINAL",
+                        "FLOW_FINAL"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "node_type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "next": {
+                      "maxItems": 0
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "node_type": {
+                      "enum": [
+                        "INITIAL",
+                        "ACTION",
+                        "ACCEPT_EVENT",
+                        "SEND_SIGNAL",
+                        "MERGE",
+                        "JOIN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "node_type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "next": {
+                      "maxItems": 1,
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "next"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "node_type": {
+                      "enum": [
+                        "DECISION"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "node_type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "next": {
+                      "items": {
+                        "required": [
+                          "guard"
+                        ]
+                      },
+                      "minItems": 2
+                    }
+                  },
+                  "required": [
+                    "next"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "node_type": {
+                      "enum": [
+                        "FORK"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "node_type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "next": {
+                      "minItems": 2
+                    }
+                  },
+                  "required": [
+                    "next"
+                  ]
+                }
+              }
+            ],
+            "description": "SYS.2 アクティビティ図を構成する要素（アクション、ディシジョン等）1件。要素間のフローは出力側の要素が保持し、入出力情報はinterface_spec_refで参照するインタフェース仕様で定義する。",
+            "properties": {
+              "artifact_type": {
+                "const": "ACTIVITY_ELEMENT"
+              },
+              "event": {
+                "description": "ACCEPT_EVENT / SEND_SIGNAL で扱うイベント名。",
+                "type": "string"
+              },
+              "next": {
+                "description": "出力フロー。DECISIONでは分岐ごとにguardを必須とする。",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "flow_kind": {
+                      "default": "CONTROL",
+                      "enum": [
+                        "CONTROL",
+                        "OBJECT"
+                      ],
+                      "type": "string"
+                    },
+                    "guard": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "interface_spec_ref": {
+                      "$ref": "#/$defs/RecordRef",
+                      "description": "このフローで受け渡す入出力を定義したインタフェース仕様。"
+                    },
+                    "target_element_ref": {
+                      "$ref": "#/$defs/RecordRef"
+                    }
+                  },
+                  "required": [
+                    "target_element_ref"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "node_type": {
+                "enum": [
+                  "INITIAL",
+                  "ACTION",
+                  "ACCEPT_EVENT",
+                  "SEND_SIGNAL",
+                  "DECISION",
+                  "MERGE",
+                  "FORK",
+                  "JOIN",
+                  "ACTIVITY_FINAL",
+                  "FLOW_FINAL"
+                ],
+                "type": "string"
+              },
+              "performer_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "実行主体（アクターまたはシステム）。パーティション（スイムレーン）に相当する。"
+              },
+              "process": {
+                "const": "SYS.2"
+              },
+              "use_case_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "このアクティビティ図が詳細化するユースケース。"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "use_case_ref",
+              "node_type"
+            ],
+            "title": "アクティビティ図の要素",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.config_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "$ref": "#/$defs/RequirementCommon"
+              }
+            ],
+            "description": "SYS.2 ダイアグ以外でBSWのコンフィグを行うために必要な項目と値の定義1件。BSWモジュール単位でまとめる。",
+            "properties": {
+              "artifact_type": {
+                "const": "CONFIG_REQUIREMENT"
+              },
+              "autosar_release": {
+                "description": "対象AUTOSARリリース（例: R22-11）。",
+                "type": "string"
+              },
+              "bsw_module": {
+                "description": "AUTOSAR BSWモジュール名（例: CanIf, Com, NvM）。",
+                "pattern": "^[A-Z][A-Za-z0-9]*$",
+                "type": "string"
+              },
+              "config_items": {
+                "items": {
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "value_type": {
+                            "const": "INTEGER"
+                          }
+                        },
+                        "required": [
+                          "value_type"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "value_type": {
+                            "const": "FLOAT"
+                          }
+                        },
+                        "required": [
+                          "value_type"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "value_type": {
+                            "const": "BOOLEAN"
+                          }
+                        },
+                        "required": [
+                          "value_type"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "value_type": {
+                            "enum": [
+                              "STRING",
+                              "ENUM",
+                              "REFERENCE"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value_type"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "properties": {
+                    "condition": {
+                      "description": "値の適用条件（バリアント、チャネルなど）。",
+                      "type": "string"
+                    },
+                    "config_class": {
+                      "enum": [
+                        "PRE_COMPILE",
+                        "LINK_TIME",
+                        "POST_BUILD"
+                      ],
+                      "type": "string"
+                    },
+                    "container_path": {
+                      "$ref": "#/$defs/Text",
+                      "description": "コンテナのパス（例: /CanIf/CanIfInitCfg）。"
+                    },
+                    "parameter": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "rationale": {
+                      "type": "string"
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "number",
+                        "string",
+                        "boolean"
+                      ]
+                    },
+                    "value_type": {
+                      "enum": [
+                        "INTEGER",
+                        "FLOAT",
+                        "BOOLEAN",
+                        "STRING",
+                        "ENUM",
+                        "REFERENCE"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "container_path",
+                    "parameter",
+                    "value_type",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.2"
+              },
+              "related_element_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "コンフィグ値の根拠となる機能要件、インタフェース仕様など。"
+              },
+              "stakeholder_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "minItems": 1
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "stakeholder_requirement_refs",
+              "bsw_module",
+              "config_items"
+            ],
+            "title": "システムコンフィグ仕様",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.diagnostic_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "$ref": "#/$defs/RequirementCommon"
+              },
+              {
+                "if": {
+                  "properties": {
+                    "diag_kind": {
+                      "const": "DID"
+                    }
+                  },
+                  "required": [
+                    "diag_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "rid": false
+                  },
+                  "required": [
+                    "did"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "diag_kind": {
+                      "const": "RID"
+                    }
+                  },
+                  "required": [
+                    "diag_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "did": false
+                  },
+                  "required": [
+                    "rid"
+                  ]
+                }
+              }
+            ],
+            "description": "SYS.2 DID（データ識別子）またはRID（ルーチン識別子）1件。AUTOSAR（Dcm）へ組み込む際のコンフィグ内容を決めるための仕様を定義する。",
+            "properties": {
+              "artifact_type": {
+                "const": "DIAGNOSTIC_REQUIREMENT"
+              },
+              "behavior_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "ルーチンの動作やデータ生成元を定義した機能要件・アクティビティ図の要素。"
+              },
+              "diag_kind": {
+                "enum": [
+                  "DID",
+                  "RID"
+                ],
+                "type": "string"
+              },
+              "did": {
+                "additionalProperties": false,
+                "anyOf": [
+                  {
+                    "required": [
+                      "read"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "write"
+                    ]
+                  }
+                ],
+                "properties": {
+                  "data_elements": {
+                    "items": {
+                      "$ref": "#/$defs/sys2.diagnostic_requirement.DidDataElement"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "read": {
+                    "$ref": "#/$defs/sys2.diagnostic_requirement.Access"
+                  },
+                  "write": {
+                    "$ref": "#/$defs/sys2.diagnostic_requirement.Access"
+                  }
+                },
+                "required": [
+                  "data_elements"
+                ],
+                "type": "object"
+              },
+              "identifier": {
+                "description": "DID/RIDの値（2バイト、例: 0xF190）。",
+                "pattern": "^0x[0-9A-Fa-f]{4}$",
+                "type": "string"
+              },
+              "process": {
+                "const": "SYS.2"
+              },
+              "rid": {
+                "additionalProperties": false,
+                "properties": {
+                  "access": {
+                    "$ref": "#/$defs/sys2.diagnostic_requirement.Access"
+                  },
+                  "execution_mode": {
+                    "enum": [
+                      "SYNCHRONOUS",
+                      "ASYNCHRONOUS"
+                    ],
+                    "type": "string"
+                  },
+                  "request_results": {
+                    "$ref": "#/$defs/sys2.diagnostic_requirement.RoutineSubFunction"
+                  },
+                  "start": {
+                    "$ref": "#/$defs/sys2.diagnostic_requirement.RoutineSubFunction"
+                  },
+                  "stop": {
+                    "$ref": "#/$defs/sys2.diagnostic_requirement.RoutineSubFunction"
+                  },
+                  "use_port": {
+                    "description": "DcmDspRoutineUsePort。",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "start",
+                  "access"
+                ],
+                "type": "object"
+              },
+              "stakeholder_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "minItems": 1
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "stakeholder_requirement_refs",
+              "diag_kind",
+              "identifier"
+            ],
+            "title": "システムダイアグ要件",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.diagnostic_requirement.Access": {
+            "additionalProperties": false,
+            "description": "サービスの実行条件（DcmDspSessionRow / DcmDspSecurityRow / ModeRuleの参照元となる値）。",
+            "properties": {
+              "mode_rules": {
+                "description": "モード条件（例: 車速0km/h、エンジン停止）。",
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "security_levels": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "level": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "name": {
+                      "$ref": "#/$defs/Text"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "level"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "sessions": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "session_id": {
+                      "$ref": "#/$defs/HexId"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "session_id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "sessions"
+            ],
+            "type": "object"
+          },
+          "sys2.diagnostic_requirement.DidDataElement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/sys2.diagnostic_requirement.SignalCommon"
+              }
+            ],
+            "properties": {
+              "condition_check_read_function": {
+                "type": "string"
+              },
+              "nvm_block": {
+                "description": "USE_BLOCK_IDで参照するNvMブロック名。",
+                "type": "string"
+              },
+              "read_function": {
+                "description": "DcmDspDataReadFnc または Rteポート名。",
+                "type": "string"
+              },
+              "source_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "データ生成元（ソフトウェアブロックなど）。"
+              },
+              "use_port": {
+                "description": "DcmDspDataUsePort。",
+                "enum": [
+                  "USE_BLOCK_ID",
+                  "USE_DATA_ASYNCH_CLIENT_SERVER",
+                  "USE_DATA_ASYNCH_CLIENT_SERVER_ERROR",
+                  "USE_DATA_ASYNCH_FNC",
+                  "USE_DATA_ASYNCH_FNC_ERROR",
+                  "USE_DATA_SENDER_RECEIVER",
+                  "USE_DATA_SENDER_RECEIVER_AS_SERVICE",
+                  "USE_DATA_SYNCH_CLIENT_SERVER",
+                  "USE_DATA_SYNCH_FNC",
+                  "USE_ECU_SIGNAL"
+                ],
+                "type": "string"
+              },
+              "write_function": {
+                "description": "DcmDspDataWriteFnc または Rteポート名。",
+                "type": "string"
+              }
+            },
+            "required": [
+              "use_port"
+            ],
+            "unevaluatedProperties": false
+          },
+          "sys2.diagnostic_requirement.RoutineSignal": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/sys2.diagnostic_requirement.SignalCommon"
+              }
+            ],
+            "unevaluatedProperties": false
+          },
+          "sys2.diagnostic_requirement.RoutineSubFunction": {
+            "additionalProperties": false,
+            "properties": {
+              "function_name": {
+                "description": "ルーチン実行関数名またはRteポート名。",
+                "type": "string"
+              },
+              "in_signals": {
+                "items": {
+                  "$ref": "#/$defs/sys2.diagnostic_requirement.RoutineSignal"
+                },
+                "type": "array"
+              },
+              "out_signals": {
+                "items": {
+                  "$ref": "#/$defs/sys2.diagnostic_requirement.RoutineSignal"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "sys2.diagnostic_requirement.SignalCommon": {
+            "properties": {
+              "data_type": {
+                "description": "DcmDspDataType。",
+                "enum": [
+                  "BOOLEAN",
+                  "UINT8",
+                  "UINT16",
+                  "UINT32",
+                  "SINT8",
+                  "SINT16",
+                  "SINT32",
+                  "UINT8_N",
+                  "UINT16_N",
+                  "UINT32_N",
+                  "SINT8_N",
+                  "SINT16_N",
+                  "SINT32_N",
+                  "FLOAT32",
+                  "FLOAT64",
+                  "UINT8_DYN"
+                ],
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "endianness": {
+                "description": "DcmDspDataEndianness。",
+                "enum": [
+                  "BIG_ENDIAN",
+                  "LITTLE_ENDIAN",
+                  "OPAQUE"
+                ],
+                "type": "string"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              },
+              "offset": {
+                "type": "number"
+              },
+              "range": {
+                "$ref": "#/$defs/Range"
+              },
+              "resolution": {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              "size_bytes": {
+                "description": "DcmDspDataByteSize。",
+                "minimum": 1,
+                "type": "integer"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "data_type",
+              "size_bytes"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "$ref": "#/$defs/RequirementCommon"
+              },
+              {
+                "if": {
+                  "properties": {
+                    "outputs": {
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "outputs"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "transformations": {
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "transformations"
+                  ]
+                }
+              }
+            ],
+            "description": "SYS.2 アクティビティ図の要素1つに対する機能要件1件。振る舞いの概要、必要な入出力情報、入力から出力への変換仕様（ディシジョンテーブルまたは変換式）を定義する。",
+            "properties": {
+              "artifact_type": {
+                "const": "FUNCTIONAL_REQUIREMENT"
+              },
+              "behavior_summary": {
+                "$ref": "#/$defs/Text"
+              },
+              "inputs": {
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.IoItem"
+                },
+                "type": "array"
+              },
+              "outputs": {
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.IoItem"
+                },
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.2"
+              },
+              "stakeholder_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "minItems": 1
+              },
+              "target_element_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "対象のアクティビティ図の要素。"
+              },
+              "transformations": {
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.Transformation"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "target_element_ref",
+              "stakeholder_requirement_refs",
+              "behavior_summary",
+              "inputs",
+              "outputs"
+            ],
+            "title": "システム機能要件",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.functional_requirement.Assignment": {
+            "additionalProperties": false,
+            "oneOf": [
+              {
+                "required": [
+                  "value"
+                ]
+              },
+              {
+                "required": [
+                  "expression"
+                ]
+              }
+            ],
+            "properties": {
+              "expression": {
+                "$ref": "#/$defs/Text"
+              },
+              "output": {
+                "$ref": "#/$defs/Text"
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              }
+            },
+            "required": [
+              "output"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement.Condition": {
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "else": {
+                  "required": [
+                    "value"
+                  ]
+                },
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "const": "ANY"
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "enum": [
+                        "IN",
+                        "NOT_IN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "type": "array"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "const": "BETWEEN"
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "type": "array"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "operator": {
+                      "enum": [
+                        "==",
+                        "!=",
+                        "<",
+                        "<=",
+                        ">",
+                        ">="
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operator"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "not": {
+                        "type": "array"
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "properties": {
+              "input": {
+                "$ref": "#/$defs/Text",
+                "description": "入力名（inputs[].name）または式。"
+              },
+              "operator": {
+                "enum": [
+                  "==",
+                  "!=",
+                  "<",
+                  "<=",
+                  ">",
+                  ">=",
+                  "IN",
+                  "NOT_IN",
+                  "BETWEEN",
+                  "ANY"
+                ],
+                "type": "string"
+              },
+              "value": {
+                "oneOf": [
+                  {
+                    "type": [
+                      "number",
+                      "string",
+                      "boolean"
+                    ]
+                  },
+                  {
+                    "items": {
+                      "type": [
+                        "number",
+                        "string",
+                        "boolean"
+                      ]
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "input",
+              "operator"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement.DecisionTable": {
+            "additionalProperties": false,
+            "properties": {
+              "default_then": {
+                "description": "どの規則にも該当しない場合の出力。",
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.Assignment"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "hit_policy": {
+                "default": "UNIQUE",
+                "enum": [
+                  "UNIQUE",
+                  "FIRST",
+                  "PRIORITY",
+                  "ANY",
+                  "COLLECT"
+                ],
+                "type": "string"
+              },
+              "rules": {
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.Rule"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "rules"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement.Formula": {
+            "additionalProperties": false,
+            "properties": {
+              "applicable_condition": {
+                "type": "string"
+              },
+              "expression": {
+                "$ref": "#/$defs/Text",
+                "description": "変換式（例: Torque = Gain * (Request - Offset)）。"
+              },
+              "rounding": {
+                "enum": [
+                  "NONE",
+                  "FLOOR",
+                  "CEIL",
+                  "ROUND"
+                ],
+                "type": "string"
+              },
+              "saturation": {
+                "$ref": "#/$defs/Range"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "variables": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "source": {
+                      "description": "入力名または定数の出所。",
+                      "type": "string"
+                    },
+                    "unit": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "expression"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement.IoItem": {
+            "additionalProperties": false,
+            "anyOf": [
+              {
+                "required": [
+                  "interface_spec_ref"
+                ]
+              },
+              {
+                "required": [
+                  "data"
+                ]
+              }
+            ],
+            "description": "入出力情報。インタフェース仕様の項目を参照するか、内部データ・パラメータはdataで直接定義する。",
+            "properties": {
+              "data": {
+                "$ref": "#/$defs/DataItem"
+              },
+              "description": {
+                "type": "string"
+              },
+              "interface_spec_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement.Rule": {
+            "additionalProperties": false,
+            "properties": {
+              "note": {
+                "type": "string"
+              },
+              "rule_no": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "then": {
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.Assignment"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "when": {
+                "description": "AND結合する条件。",
+                "items": {
+                  "$ref": "#/$defs/sys2.functional_requirement.Condition"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "when",
+              "then"
+            ],
+            "type": "object"
+          },
+          "sys2.functional_requirement.Transformation": {
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "DECISION_TABLE"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "formula": false
+                  },
+                  "required": [
+                    "decision_table"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "FORMULA"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "decision_table": false
+                  },
+                  "required": [
+                    "formula"
+                  ]
+                }
+              }
+            ],
+            "properties": {
+              "decision_table": {
+                "$ref": "#/$defs/sys2.functional_requirement.DecisionTable"
+              },
+              "description": {
+                "type": "string"
+              },
+              "formula": {
+                "$ref": "#/$defs/sys2.functional_requirement.Formula"
+              },
+              "kind": {
+                "enum": [
+                  "DECISION_TABLE",
+                  "FORMULA"
+                ],
+                "type": "string"
+              },
+              "output": {
+                "$ref": "#/$defs/Text",
+                "description": "変換結果を設定する出力名（outputs[].name）。"
+              }
+            },
+            "required": [
+              "output",
+              "kind"
+            ],
+            "type": "object"
+          },
+          "sys2.interface_spec": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "端点間で授受する入出力情報の定義1件。ACTIONはアクティビティ図の要素間、LOGICALは論理機能間、PHYSICALは物理ブロック間で使用する。端点はsource/targetが唯一の正とし、アクティビティ要素のnextとの整合はMCPサーバーで検証する。",
+            "properties": {
+              "abstraction_level": {
+                "enum": [
+                  "ACTION",
+                  "LOGICAL",
+                  "PHYSICAL"
+                ],
+                "type": "string"
+              },
+              "artifact_type": {
+                "const": "INTERFACE_SPEC"
+              },
+              "communication": {
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "pattern": {
+                          "const": "PERIODIC"
+                        }
+                      },
+                      "required": [
+                        "pattern"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "period_ms"
+                      ]
+                    }
+                  }
+                ],
+                "properties": {
+                  "max_latency_ms": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "parameters": {
+                    "items": {
+                      "$ref": "#/$defs/Parameter"
+                    },
+                    "type": "array"
+                  },
+                  "pattern": {
+                    "enum": [
+                      "PERIODIC",
+                      "EVENT_DRIVEN",
+                      "ON_CHANGE",
+                      "REQUEST_RESPONSE"
+                    ],
+                    "type": "string"
+                  },
+                  "period_ms": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "timeout_ms": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "pattern"
+                ],
+                "type": "object"
+              },
+              "interface_kind": {
+                "enum": [
+                  "DATA_FLOW",
+                  "EVENT",
+                  "SERVICE_CALL",
+                  "CONTROL",
+                  "ELECTRICAL"
+                ],
+                "type": "string"
+              },
+              "items": {
+                "description": "授受する信号・データ項目。",
+                "items": {
+                  "$ref": "#/$defs/DataItem"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "process": {
+                "enum": [
+                  "SYS.2",
+                  "SYS.3"
+                ]
+              },
+              "source": {
+                "$ref": "#/$defs/Endpoint"
+              },
+              "target": {
+                "$ref": "#/$defs/Endpoint"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "abstraction_level",
+              "interface_kind",
+              "source",
+              "target",
+              "items"
+            ],
+            "title": "インタフェース仕様",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.nonfunctional_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "$ref": "#/$defs/RequirementCommon"
+              }
+            ],
+            "description": "SYS.2 処理性能などの非機能要件1件。",
+            "properties": {
+              "artifact_type": {
+                "const": "NONFUNCTIONAL_REQUIREMENT"
+              },
+              "measurement_condition": {
+                "description": "測定条件・前提（負荷、動作モードなど）。",
+                "type": "string"
+              },
+              "metric": {
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "operator": {
+                          "const": "BETWEEN"
+                        }
+                      },
+                      "required": [
+                        "operator"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "upper_value"
+                      ]
+                    }
+                  }
+                ],
+                "properties": {
+                  "name": {
+                    "$ref": "#/$defs/Text",
+                    "description": "測定対象（例: 応答時間、CPU使用率）。"
+                  },
+                  "operator": {
+                    "enum": [
+                      "<",
+                      "<=",
+                      ">",
+                      ">=",
+                      "==",
+                      "BETWEEN"
+                    ],
+                    "type": "string"
+                  },
+                  "target_value": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "type": "string"
+                  },
+                  "upper_value": {
+                    "description": "BETWEENの上限値。",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "name",
+                  "operator",
+                  "target_value"
+                ],
+                "type": "object"
+              },
+              "nfr_category": {
+                "enum": [
+                  "PERFORMANCE",
+                  "TIMING",
+                  "RESOURCE_USAGE",
+                  "RELIABILITY",
+                  "AVAILABILITY",
+                  "SECURITY",
+                  "MAINTAINABILITY",
+                  "COMPATIBILITY",
+                  "ENVIRONMENT",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "process": {
+                "const": "SYS.2"
+              },
+              "scope_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "適用範囲（ユースケース、アクティビティ図の要素、システムなど）。"
+              },
+              "stakeholder_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "minItems": 1
+              },
+              "statement": {
+                "$ref": "#/$defs/Text"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "stakeholder_requirement_refs",
+              "nfr_category",
+              "statement",
+              "metric"
+            ],
+            "title": "システム非機能要件",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys2.use_case": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.2 ユースケース1件。ユースケース図は、ユースケースとその参照アクター・include/extend関係から構成する。",
+            "properties": {
+              "alternative_flows": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "condition": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "name": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "steps": {
+                      "items": {
+                        "$ref": "#/$defs/Text"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "condition",
+                    "steps"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "artifact_type": {
+                "const": "USE_CASE"
+              },
+              "extends": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "condition": {
+                      "type": "string"
+                    },
+                    "extension_point": {
+                      "type": "string"
+                    },
+                    "use_case_ref": {
+                      "$ref": "#/$defs/RecordRef"
+                    }
+                  },
+                  "required": [
+                    "use_case_ref"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "generalizes": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "汎化元のユースケース。"
+              },
+              "includes": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "includeするユースケース。"
+              },
+              "main_flow": {
+                "description": "基本フローの手順。詳細な振る舞いはアクティビティ図の要素で定義する。",
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "postconditions": {
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "preconditions": {
+                "items": {
+                  "$ref": "#/$defs/Text"
+                },
+                "type": "array"
+              },
+              "primary_actor_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "minItems": 1
+              },
+              "process": {
+                "const": "SYS.2"
+              },
+              "secondary_actor_refs": {
+                "$ref": "#/$defs/RecordRefList"
+              },
+              "stakeholder_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "minItems": 1
+              },
+              "system_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "trigger": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "system_ref",
+              "primary_actor_refs",
+              "stakeholder_requirement_refs"
+            ],
+            "title": "ユースケース",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.hardware_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "$ref": "#/$defs/RequirementCommon"
+              }
+            ],
+            "description": "SYS.3 システム要件からハードウェア要素へ分解した要件1件。",
+            "properties": {
+              "artifact_type": {
+                "const": "HARDWARE_REQUIREMENT"
+              },
+              "hw_category": {
+                "enum": [
+                  "ELECTRICAL",
+                  "POWER",
+                  "THERMAL",
+                  "MECHANICAL",
+                  "EMC",
+                  "MEMORY",
+                  "PERIPHERAL",
+                  "CONNECTOR",
+                  "ENVIRONMENT",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "parameters": {
+                "items": {
+                  "$ref": "#/$defs/Parameter"
+                },
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "statement": {
+                "$ref": "#/$defs/Text"
+              },
+              "system_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "description": "分解元のシステム要件。",
+                "minItems": 1
+              },
+              "target_block_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "要件を実現する物理ブロック。"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "system_requirement_refs",
+              "hw_category",
+              "statement"
+            ],
+            "title": "ハードウェア要件",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.hsi": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "if": {
+                  "properties": {
+                    "signal_type": {
+                      "enum": [
+                        "ANALOG_IN",
+                        "ANALOG_OUT"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "signal_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "conversion"
+                  ]
+                }
+              }
+            ],
+            "description": "SYS.3 ハードウェアとソフトウェア間の信号・インタフェース項目1件。",
+            "properties": {
+              "artifact_type": {
+                "const": "HSI"
+              },
+              "conversion": {
+                "additionalProperties": false,
+                "anyOf": [
+                  {
+                    "required": [
+                      "expression"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "gain"
+                    ]
+                  }
+                ],
+                "description": "ハードウェア側の物理量とソフトウェア側の値の換算。",
+                "properties": {
+                  "expression": {
+                    "type": "string"
+                  },
+                  "filter": {
+                    "type": "string"
+                  },
+                  "gain": {
+                    "type": "number"
+                  },
+                  "offset": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "direction": {
+                "description": "HW_TO_SW: ソフトウェアから見た入力、SW_TO_HW: 出力。",
+                "enum": [
+                  "HW_TO_SW",
+                  "SW_TO_HW",
+                  "BIDIRECTIONAL"
+                ],
+                "type": "string"
+              },
+              "hardware_block_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "hardware_side": {
+                "additionalProperties": false,
+                "properties": {
+                  "active_level": {
+                    "enum": [
+                      "HIGH",
+                      "LOW"
+                    ],
+                    "type": "string"
+                  },
+                  "current_max_ma": {
+                    "type": "number"
+                  },
+                  "peripheral": {
+                    "description": "使用するペリフェラルとチャネル（例: ADC0 CH3）。",
+                    "type": "string"
+                  },
+                  "pin_name": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "string"
+                  },
+                  "pull_mode": {
+                    "enum": [
+                      "NONE",
+                      "PULL_UP",
+                      "PULL_DOWN"
+                    ],
+                    "type": "string"
+                  },
+                  "signal_level": {
+                    "type": "string"
+                  },
+                  "voltage_max_v": {
+                    "type": "number"
+                  },
+                  "voltage_min_v": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              },
+              "initial_state": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              },
+              "interface_spec_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "safe_state": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              },
+              "signal_type": {
+                "enum": [
+                  "DIGITAL_IN",
+                  "DIGITAL_OUT",
+                  "ANALOG_IN",
+                  "ANALOG_OUT",
+                  "PWM_IN",
+                  "PWM_OUT",
+                  "COMMUNICATION",
+                  "INTERRUPT",
+                  "WAKEUP",
+                  "REGISTER",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "software_block_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "software_side": {
+                "additionalProperties": false,
+                "properties": {
+                  "bsw_module": {
+                    "description": "アクセスするBSWモジュール（例: Dio, Adc, Pwm, Icu）。",
+                    "type": "string"
+                  },
+                  "channel": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "$ref": "#/$defs/DataItem"
+                  },
+                  "port": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              },
+              "timing": {
+                "additionalProperties": false,
+                "properties": {
+                  "debounce_ms": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "period_ms": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "response_time_ms": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "hardware_block_ref",
+              "software_block_ref",
+              "direction",
+              "signal_type",
+              "hardware_side",
+              "software_side"
+            ],
+            "title": "HSI（ハードウェア・ソフトウェア間インタフェース）",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.logical_connector": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.3 内部ブロック図における、論理機能のポート間をインタフェース仕様で結ぶ接続1件。",
+            "properties": {
+              "artifact_type": {
+                "const": "LOGICAL_CONNECTOR"
+              },
+              "connector_kind": {
+                "description": "ASSEMBLY: 部品間の接続、DELEGATION: 所有ブロックの境界ポートと内部部品の接続。",
+                "enum": [
+                  "ASSEMBLY",
+                  "DELEGATION"
+                ],
+                "type": "string"
+              },
+              "interface_spec_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "owner_function_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "この内部ブロック図の対象とする論理機能。"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "source": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/Endpoint"
+                  }
+                ],
+                "required": [
+                  "port"
+                ]
+              },
+              "target": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/Endpoint"
+                  }
+                ],
+                "required": [
+                  "port"
+                ]
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "owner_function_ref",
+              "connector_kind",
+              "source",
+              "target",
+              "interface_spec_ref"
+            ],
+            "title": "論理機能間コネクタ",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.logical_function": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.3 論理機能1件（機能ブロック図のブロック）。機能ブロック図は、論理機能とparent_function_refによる階層から構成する。",
+            "properties": {
+              "allocated_element_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "この論理機能に割り当てたアクティビティ図の要素。"
+              },
+              "allocated_requirement_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "この論理機能に割り当てたシステム要件。"
+              },
+              "artifact_type": {
+                "const": "LOGICAL_FUNCTION"
+              },
+              "parent_function_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "ports": {
+                "items": {
+                  "$ref": "#/$defs/Port"
+                },
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.3"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process"
+            ],
+            "title": "論理機能",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.physical_block": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "if": {
+                  "properties": {
+                    "domain": {
+                      "const": "HARDWARE"
+                    }
+                  },
+                  "required": [
+                    "domain"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "block_kind": {
+                      "enum": [
+                        "ECU",
+                        "PCB",
+                        "MCU",
+                        "SOC",
+                        "MEMORY",
+                        "TRANSCEIVER",
+                        "SENSOR",
+                        "ACTUATOR",
+                        "POWER_SUPPLY",
+                        "CONNECTOR",
+                        "PERIPHERAL",
+                        "OTHER_HW"
+                      ]
+                    },
+                    "sw_attributes": false
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "domain": {
+                      "const": "SOFTWARE"
+                    }
+                  },
+                  "required": [
+                    "domain"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "block_kind": {
+                      "enum": [
+                        "APPLICATION_SWC",
+                        "BSW_MODULE",
+                        "COMPLEX_DRIVER",
+                        "MCAL",
+                        "RTE",
+                        "OS",
+                        "BOOTLOADER",
+                        "OTHER_SW"
+                      ]
+                    },
+                    "hw_attributes": false
+                  }
+                }
+              }
+            ],
+            "description": "SYS.3 ハードウェアまたはソフトウェアの物理ブロック1件（物理ブロック定義図のブロック）。階層はparent_block_refで表す。",
+            "properties": {
+              "allocated_function_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "このブロックに割り当てた論理機能。"
+              },
+              "artifact_type": {
+                "const": "PHYSICAL_BLOCK"
+              },
+              "block_kind": {
+                "type": "string"
+              },
+              "domain": {
+                "enum": [
+                  "HARDWARE",
+                  "SOFTWARE"
+                ],
+                "type": "string"
+              },
+              "hw_attributes": {
+                "additionalProperties": false,
+                "properties": {
+                  "manufacturer": {
+                    "type": "string"
+                  },
+                  "package": {
+                    "type": "string"
+                  },
+                  "part_number": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "parent_block_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "ports": {
+                "items": {
+                  "$ref": "#/$defs/Port"
+                },
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "properties": {
+                "items": {
+                  "$ref": "#/$defs/Parameter"
+                },
+                "type": "array"
+              },
+              "sw_attributes": {
+                "additionalProperties": false,
+                "properties": {
+                  "asset_origin": {
+                    "enum": [
+                      "NEW",
+                      "REUSED",
+                      "PURCHASED",
+                      "OSS"
+                    ],
+                    "type": "string"
+                  },
+                  "autosar_module": {
+                    "description": "BSWモジュール名またはSWCタイプ名。",
+                    "type": "string"
+                  },
+                  "layer": {
+                    "enum": [
+                      "APPLICATION",
+                      "RTE",
+                      "SERVICES",
+                      "ECU_ABSTRACTION",
+                      "MCAL",
+                      "COMPLEX_DRIVERS",
+                      "OS",
+                      "OTHER"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "domain",
+              "block_kind"
+            ],
+            "title": "物理ブロック",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.physical_connector": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.3 物理内部ブロック図における、物理ブロックのポート間をインタフェース仕様で結ぶ接続1件。ハードウェアとソフトウェア間の信号接続はHSIで定義する。",
+            "properties": {
+              "artifact_type": {
+                "const": "PHYSICAL_CONNECTOR"
+              },
+              "connector_kind": {
+                "enum": [
+                  "ASSEMBLY",
+                  "DELEGATION"
+                ],
+                "type": "string"
+              },
+              "interface_spec_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "medium": {
+                "enum": [
+                  "WIRE",
+                  "ANALOG",
+                  "DIGITAL_IO",
+                  "PWM",
+                  "POWER",
+                  "CAN",
+                  "CAN_FD",
+                  "LIN",
+                  "FLEXRAY",
+                  "ETHERNET",
+                  "SPI",
+                  "I2C",
+                  "SENT",
+                  "RTE_PORT",
+                  "FUNCTION_CALL",
+                  "SHARED_MEMORY",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "owner_block_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "この内部ブロック図の対象とする物理ブロック。"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "source": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/Endpoint"
+                  }
+                ],
+                "required": [
+                  "port"
+                ]
+              },
+              "target": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/Endpoint"
+                  }
+                ],
+                "required": [
+                  "port"
+                ]
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "owner_block_ref",
+              "connector_kind",
+              "medium",
+              "source",
+              "target",
+              "interface_spec_ref"
+            ],
+            "title": "物理ブロック間コネクタ",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.sequence_diagram": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.3 シーケンス図1件（1シナリオ）。ライフラインとメッセージ・複合フラグメントを時系列で保持する。",
+            "properties": {
+              "artifact_type": {
+                "const": "SEQUENCE_DIAGRAM"
+              },
+              "events": {
+                "description": "上から下の時系列順。",
+                "items": {
+                  "$ref": "#/$defs/sys3.sequence_diagram.Event"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "lifelines": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "lifeline_id": {
+                      "$ref": "#/$defs/LocalId"
+                    },
+                    "name": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "represents_ref": {
+                      "$ref": "#/$defs/RecordRef",
+                      "description": "アクター、論理機能などの参照先。"
+                    }
+                  },
+                  "required": [
+                    "lifeline_id",
+                    "name",
+                    "represents_ref"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 2,
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "use_case_ref": {
+                "$ref": "#/$defs/RecordRef",
+                "description": "このシーケンス図が示すシナリオのユースケース。"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "lifelines",
+              "events"
+            ],
+            "title": "シーケンス図",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.sequence_diagram.Event": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/sys3.sequence_diagram.Message"
+              },
+              {
+                "$ref": "#/$defs/sys3.sequence_diagram.Fragment"
+              }
+            ]
+          },
+          "sys3.sequence_diagram.Fragment": {
+            "additionalProperties": false,
+            "properties": {
+              "event_type": {
+                "const": "FRAGMENT"
+              },
+              "operands": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "events": {
+                      "items": {
+                        "$ref": "#/$defs/sys3.sequence_diagram.Event"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "guard": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "events"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "operator": {
+                "enum": [
+                  "ALT",
+                  "OPT",
+                  "LOOP",
+                  "PAR",
+                  "BREAK",
+                  "CRITICAL"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_type",
+              "operator",
+              "operands"
+            ],
+            "type": "object"
+          },
+          "sys3.sequence_diagram.Message": {
+            "additionalProperties": false,
+            "properties": {
+              "event_type": {
+                "const": "MESSAGE"
+              },
+              "from_lifeline_id": {
+                "$ref": "#/$defs/LocalId"
+              },
+              "interface_spec_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "max_latency_ms": {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              "message_id": {
+                "$ref": "#/$defs/LocalId"
+              },
+              "message_kind": {
+                "enum": [
+                  "SYNC_CALL",
+                  "ASYNC",
+                  "REPLY"
+                ],
+                "type": "string"
+              },
+              "name": {
+                "$ref": "#/$defs/Text"
+              },
+              "note": {
+                "type": "string"
+              },
+              "to_lifeline_id": {
+                "$ref": "#/$defs/LocalId"
+              }
+            },
+            "required": [
+              "event_type",
+              "name",
+              "message_kind",
+              "from_lifeline_id",
+              "to_lifeline_id"
+            ],
+            "type": "object"
+          },
+          "sys3.software_requirement": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              },
+              {
+                "$ref": "#/$defs/RequirementCommon"
+              }
+            ],
+            "description": "SYS.3 システム要件からソフトウェア要素へ分解した要件1件。",
+            "properties": {
+              "artifact_type": {
+                "const": "SOFTWARE_REQUIREMENT"
+              },
+              "parameters": {
+                "items": {
+                  "$ref": "#/$defs/Parameter"
+                },
+                "type": "array"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "statement": {
+                "$ref": "#/$defs/Text"
+              },
+              "sw_category": {
+                "enum": [
+                  "FUNCTIONAL",
+                  "TIMING",
+                  "RESOURCE_USAGE",
+                  "INTERFACE",
+                  "CONFIGURATION",
+                  "DIAGNOSTIC",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "system_requirement_refs": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/RecordRefList"
+                  }
+                ],
+                "description": "分解元のシステム要件。",
+                "minItems": 1
+              },
+              "target_block_refs": {
+                "$ref": "#/$defs/RecordRefList",
+                "description": "要件を実現する物理ブロック。"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "system_requirement_refs",
+              "sw_category",
+              "statement"
+            ],
+            "title": "ソフトウェア要件",
+            "type": "object",
+            "unevaluatedProperties": false
+          },
+          "sys3.state_machine": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/Base"
+              }
+            ],
+            "description": "SYS.3 論理機能の状態遷移図1件。状態と遷移は図全体で1レコードとして保持する。",
+            "properties": {
+              "artifact_type": {
+                "const": "STATE_MACHINE"
+              },
+              "owner_function_ref": {
+                "$ref": "#/$defs/RecordRef"
+              },
+              "process": {
+                "const": "SYS.3"
+              },
+              "states": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "do_activity": {
+                      "type": "string"
+                    },
+                    "entry_action": {
+                      "type": "string"
+                    },
+                    "exit_action": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "default": "SIMPLE",
+                      "enum": [
+                        "INITIAL",
+                        "SIMPLE",
+                        "COMPOSITE",
+                        "FINAL",
+                        "CHOICE",
+                        "JUNCTION",
+                        "FORK",
+                        "JOIN",
+                        "HISTORY"
+                      ],
+                      "type": "string"
+                    },
+                    "name": {
+                      "$ref": "#/$defs/Text"
+                    },
+                    "parent_state_id": {
+                      "$ref": "#/$defs/LocalId"
+                    },
+                    "state_id": {
+                      "$ref": "#/$defs/LocalId"
+                    }
+                  },
+                  "required": [
+                    "state_id",
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "transitions": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "effect": {
+                      "type": "string"
+                    },
+                    "guard": {
+                      "type": "string"
+                    },
+                    "priority": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "source_state_id": {
+                      "$ref": "#/$defs/LocalId"
+                    },
+                    "target_state_id": {
+                      "$ref": "#/$defs/LocalId"
+                    },
+                    "transition_id": {
+                      "$ref": "#/$defs/LocalId"
+                    },
+                    "trigger": {
+                      "additionalProperties": false,
+                      "allOf": [
+                        {
+                          "else": {
+                            "required": [
+                              "event"
+                            ]
+                          },
+                          "if": {
+                            "properties": {
+                              "kind": {
+                                "const": "COMPLETION"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          }
+                        }
+                      ],
+                      "properties": {
+                        "event": {
+                          "$ref": "#/$defs/Text"
+                        },
+                        "interface_spec_ref": {
+                          "$ref": "#/$defs/RecordRef"
+                        },
+                        "kind": {
+                          "enum": [
+                            "SIGNAL",
+                            "CHANGE",
+                            "TIME",
+                            "CALL",
+                            "COMPLETION"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "transition_id",
+                    "source_state_id",
+                    "target_state_id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "process",
+              "owner_function_ref",
+              "states",
+              "transitions"
+            ],
+            "title": "状態遷移図",
+            "type": "object",
+            "unevaluatedProperties": false
+          }
+        },
+        "$id": "urn:das:schema:sys.artifact:1",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "DIAGRAM_VIEW"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys.diagram_view"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "ACTOR"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys1.actor"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "STAKEHOLDER_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys1.stakeholder_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "SYSTEM"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys1.system"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "SYSTEM_BOUNDARY"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys1.system_boundary"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "ACTIVITY_ELEMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.activity_element"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "CONFIG_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.config_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "DIAGNOSTIC_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.diagnostic_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "FUNCTIONAL_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.functional_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "INTERFACE_SPEC"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.interface_spec"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "NONFUNCTIONAL_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.nonfunctional_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "USE_CASE"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys2.use_case"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "HARDWARE_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.hardware_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "HSI"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.hsi"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "LOGICAL_CONNECTOR"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.logical_connector"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "LOGICAL_FUNCTION"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.logical_function"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "PHYSICAL_BLOCK"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.physical_block"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "PHYSICAL_CONNECTOR"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.physical_connector"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "SEQUENCE_DIAGRAM"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.sequence_diagram"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "SOFTWARE_REQUIREMENT"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.software_requirement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "artifact_type": {
+                  "const": "STATE_MACHINE"
+                }
+              },
+              "required": [
+                "artifact_type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/sys3.state_machine"
+            }
+          }
+        ],
+        "description": "CONTENT_REVISION.content_json に適用する単一スキーマ。artifact_type の値で成果物種別ごとの定義に切り替える。",
+        "properties": {
+          "artifact_type": {
+            "enum": [
+              "DIAGRAM_VIEW",
+              "ACTOR",
+              "STAKEHOLDER_REQUIREMENT",
+              "SYSTEM",
+              "SYSTEM_BOUNDARY",
+              "ACTIVITY_ELEMENT",
+              "CONFIG_REQUIREMENT",
+              "DIAGNOSTIC_REQUIREMENT",
+              "FUNCTIONAL_REQUIREMENT",
+              "INTERFACE_SPEC",
+              "NONFUNCTIONAL_REQUIREMENT",
+              "USE_CASE",
+              "HARDWARE_REQUIREMENT",
+              "HSI",
+              "LOGICAL_CONNECTOR",
+              "LOGICAL_FUNCTION",
+              "PHYSICAL_BLOCK",
+              "PHYSICAL_CONNECTOR",
+              "SEQUENCE_DIAGRAM",
+              "SOFTWARE_REQUIREMENT",
+              "STATE_MACHINE"
+            ]
+          }
+        },
+        "required": [
+          "artifact_type"
+        ],
+        "title": "SYS.1〜SYS.3 成果物",
+        "type": "object"
+      },
+      "schema_key": "sys.artifact",
+      "schema_version": 1
+    }
+  ]
+}

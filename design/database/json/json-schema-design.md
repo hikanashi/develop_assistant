@@ -1,6 +1,6 @@
 # 成果物JSON Schema設計（SYS.1〜SYS.3）
 
-[er-design.md](./er-design.md) の `CONTENT_REVISION.content_json` に格納する、A-SPICE SYS.1〜SYS.3 成果物のJSON Schemaを定義する。
+[er-design.md](../er-design.md) の `CONTENT_REVISION.content_json` に格納する、A-SPICE SYS.1〜SYS.3 成果物のJSON Schemaを定義する。
 
 ## 配置と生成
 
@@ -10,7 +10,7 @@
 | `schemas/examples/<種別キー>.json` | 種別ごとの正常例（`valid`）と異常例（`invalid`） |
 | `schemas/validate.py` | スキーマの妥当性と examples を検証する（要 `jsonschema` 4.x） |
 
-スキーマを編集したら `python3 design/database/schemas/validate.py` を実行する。
+スキーマを編集したら `python3 design/database/json/schemas/validate.py` を実行する。
 
 ## 方針
 

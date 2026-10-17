@@ -156,6 +156,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+/backend/localdata/
 
 # Spyder project settings
 .spyderproject
