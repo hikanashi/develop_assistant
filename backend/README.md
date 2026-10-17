@@ -9,7 +9,7 @@ FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバック�
 | REST API | `http://localhost:8000/` (Swagger UI: `/docs`、ヘルスチェック: `/health`) |
 | MCP | `http://localhost:8000/mcp/` (Streamable HTTP。末尾の `/` が必要) |
 | DB | PostgreSQL 18 (`db:5432`。ユーザー・パスワード・DB名は [.env](#環境変数-env) で設定) |
-| DB確認GUI | Adminer (`http://localhost:8080`) |
+| DB確認 | VS Code の PostgreSQL 拡張機能 ([4. DBの内容確認手順](#4-dbの内容確認手順)) |
 
 ## 1. 環境構築手順
 
@@ -63,7 +63,7 @@ DB の認証情報は、リポジトリ直下の `.env` に分離しています
 - バックエンドは [app/config.py](app/config.py) で、これらの変数から接続URLを組み立てる (パスワードに記号が含まれても使える)。接続先ホストは `POSTGRES_HOST` (compose 内では `db`。未設定なら `localhost`)、ポートは `POSTGRES_PORT` (未設定なら `5432`)。`DATABASE_URL` を設定すると、それを優先する。
 - **`POSTGRES_*` は DB ボリュームの作成時にだけ反映される。** 変更した場合は `docker compose down -v` でボリュームを削除して作り直す (データも消える)。
 - `.env` がない状態で `docker compose` を実行すると `env file .../.env not found` で失敗する。`.env.example` をコピーする。
-- ポート番号 (`DB_PORT`、`BACKEND_PORT`、`WEB_PORT`、`ADMINER_PORT`) は認証情報ではないため、必要なときに `.env` へ追記するか、コマンドラインで指定する。
+- ポート番号 (`DB_PORT`、`BACKEND_PORT`、`WEB_PORT`) は認証情報ではないため、必要なときに `.env` へ追記するか、コマンドラインで指定する。
 - ローカル専用の値であり、本番 (Amazon RDS) の認証情報は使用しない。
 
 ### コンテナの構成
@@ -72,20 +72,19 @@ DB の認証情報は、リポジトリ直下の `.env` に分離しています
 |---|---|
 | `app` | 開発コンテナ (Dev Container のみ)。Python 3.13 (`/opt/venv`)、Node.js 22、psql |
 | `db` | PostgreSQL 18。データは named volume `pgdata` に保存される |
-| `adminer` | DB確認用GUI |
 
-設定は [.devcontainer/](../.devcontainer) にあります。`db` と `adminer` の定義はルートの compose と共通で、[compose/](../compose) を読み込んでいます。ポート 3000 / 8000 / 5432 / 8080 は VS Code が自動でフォワードします。
+設定は [.devcontainer/](../.devcontainer) にあります。`db` の定義はルートの compose と共通で、[compose/](../compose) を読み込んでいます。ポート 3000 / 8000 / 5432 は VS Code が自動でフォワードします。
 
 `app` コンテナはホストから隔離されています (全capability剥奪、sudoなし、`.git` は読み取り専用)。`git commit` / `git push` はホスト側で実行してください。
 
 ### Dev Container を使わずに全サービスを起動する
 
-リポジトリのルートで `docker compose up` を実行すると、DB・バックエンド・フロントエンド・DB確認GUIがすべて起動し、初期データも投入されます。VS Code 以外から動作を確認したい場合や、Dify など他のサービスと組み合わせて使う場合に利用します。**事前に `cp .env.example .env` で `.env` を作成してください** ([環境変数 (.env)](#環境変数-env))。
+リポジトリのルートで `docker compose up` を実行すると、DB・バックエンド・フロントエンドがすべて起動し、初期データも投入されます。VS Code 以外から動作を確認したい場合や、Dify など他のサービスと組み合わせて使う場合に利用します。**事前に `cp .env.example .env` で `.env` を作成してください** ([環境変数 (.env)](#環境変数-env))。
 
 ```bash
 docker compose up -d --build   # 起動 (-d でバックグラウンド。省略するとログを表示)
 docker compose ps -a           # 状態確認
-docker compose logs -f backend # ログ確認 (サービス名: db / backend-init / backend / web / adminer)
+docker compose logs -f backend # ログ確認 (サービス名: db / backend-init / backend / web)
 docker compose down            # 停止 (DBのデータは残る)
 docker compose down -v         # 停止してDBのデータも削除
 ```
@@ -97,10 +96,9 @@ docker compose down -v         # 停止してDBのデータも削除
 | web (Next.js) | `http://localhost:3000` | [compose/web.yaml](../compose/web.yaml) |
 | backend (REST / MCP) | `http://localhost:8000` (MCP: `/mcp/`) | [compose/backend.yaml](../compose/backend.yaml) |
 | db (PostgreSQL 18) | `localhost:5432` | [compose/db.yaml](../compose/db.yaml) |
-| adminer | `http://localhost:8080` | [compose/tools.yaml](../compose/tools.yaml) |
 
-- ポートは `127.0.0.1` のみに公開される。変更する場合は環境変数 `WEB_PORT` / `BACKEND_PORT` / `DB_PORT` / `ADMINER_PORT` を指定する (例: `DB_PORT=15432 docker compose up -d`)。
-- 初期データを変更したら、`docker compose run --rm backend-init` で再投入する (既存行は更新されない。[2. 初期投入データの編集手順](#2-初期投入データの編集手順))。
+- ポートは `127.0.0.1` のみに公開される。変更する場合は環境変数 `WEB_PORT` / `BACKEND_PORT` / `DB_PORT` を指定する (例: `DB_PORT=15432 docker compose up -d`)。
+- 初期データを変更したら、`docker compose run --rm backend-init` で再投入する (既存行は更新されない。[3. 初期投入データの編集手順](#3-初期投入データの編集手順))。
 - スキーマ変更のコマンドは `docker compose exec backend alembic ...` のように実行する。
 - Dev Container と同時に起動しない (同じプロジェクト・同じDBを共有するため、どちらか一方を使う)。
 
@@ -136,7 +134,52 @@ docker compose down -v                                        # ルートのcomp
 docker compose -f .devcontainer/docker-compose.yml down -v    # Dev Container
 ```
 
-## 2. 初期投入データの編集手順
+## 2. GitHub Copilot での MCP 設定手順
+
+VS Code の GitHub Copilot (Agent モード) から、このバックエンドの MCP ツールを利用します。
+
+### 手順
+
+1. Dev Container 内でバックエンドを起動する (`uvicorn app.main:app --reload --host 0.0.0.0`)。
+2. リポジトリに `.vscode/mcp.json` を作成する。
+
+   ```json
+   {
+     "servers": {
+       "develop-assistant": {
+         "type": "http",
+         "url": "http://localhost:8000/mcp/"
+       }
+     }
+   }
+   ```
+
+   - Dev Container 内の VS Code では、コンテナ内の `localhost:8000` に接続される。
+   - URL 末尾の `/` を付けること (付けないとリダイレクトされ接続に失敗する場合がある)。
+   - チームで共有する場合はこのファイルをコミットする。認証情報を書かないこと。
+
+3. `.vscode/mcp.json` を開くと表示される **開始** をクリックするか、コマンドパレットの **MCP: List Servers** → `develop-assistant` → **Start Server** を実行する。
+4. Copilot Chat を **Agent** モードにし、ツールアイコン (「ツールの構成」) の一覧に `develop-assistant` のツール (`db_version` など) が表示されていることを確認する。
+5. チャットで利用する。例: 「`db_version` ツールで PostgreSQL のバージョンを教えて」。ツールの実行時には確認ダイアログが表示されるので許可する。
+
+### うまく動かないとき
+
+| 症状 | 確認すること |
+|---|---|
+| サーバーが起動できない | uvicorn が起動しているか。`curl localhost:8000/health` が `ok` を返すか |
+| ツールが表示されない | **MCP: List Servers** → サーバー → **Show Output** でログを確認。ツールを追加した後は uvicorn の再起動とサーバーの再起動を行う |
+| 接続エラー | URL が `http://localhost:8000/mcp/` (末尾 `/`) か。ポート 8000 がフォワードされているか |
+| 企業・組織のポリシーで利用できない | GitHub の組織設定で Copilot の「MCP servers in Copilot」が有効か管理者に確認する |
+
+### 補足: Dify / Claude Code から接続する場合
+
+同じ URL (`http://localhost:8000/mcp/`、Streamable HTTP) を使います。Claude Code の場合の例:
+
+```bash
+claude mcp add --transport http develop-assistant http://localhost:8000/mcp/
+```
+
+## 3. 初期投入データの編集手順
 
 ローカルDBの初期データは `backend/seed/*.json` で定義します。
 
@@ -218,7 +261,7 @@ python -m app.cli seed --dir PATH  # 別ディレクトリを指定
 
 ### 現在のDBの内容を初期データとして保存する
 
-Adminer などでデータを作成・編集した後、その内容をシードにできます。
+VS Code の PostgreSQL 拡張機能などでデータを作成・編集した後、その内容をシードにできます。
 
 ```bash
 cd backend
@@ -230,22 +273,30 @@ python -m app.cli export -o seed/10_sample.json   # 出力先を指定
 - 出力先が `backend/seed/` 内だと次回の `seed` で読み込まれる。同じ内容を重複して置かないよう、不要なファイルは整理する。
 - 出力ファイルはレビューしてからコミットする。
 
-## 3. DBの内容確認手順
+## 4. DBの内容確認手順
 
-### Adminer (ブラウザ)
+### VS Code の PostgreSQL 拡張機能
 
-1. `http://localhost:8080` を開く (VS Code の「ポート」タブからも開ける)。
-2. 次の値でログインする (サーバーは設定済み)。
+VS Code の PostgreSQL 拡張機能 (`ms-ossdata.vscode-pgsql`) で、テーブルの内容確認とSQLの実行ができます。Dev Container では自動でインストールされます。ホスト側の VS Code で使う場合は、拡張機能ビューで「PostgreSQL」(Microsoft) をインストールしてください。
+
+1. アクティビティバーの PostgreSQL アイコンを開き、接続の追加 (**Add Connection**) を選ぶ。
+2. 次の値を入力して接続する (表示名は拡張機能のバージョンにより異なる)。
 
    | 項目 | 値 |
    |---|---|
-   | システム | PostgreSQL |
-   | サーバー | `db` |
+   | サーバー (ホスト) | Dev Container 内の VS Code: `db` / ホスト側の VS Code: `localhost` |
+   | ポート | `5432` (`DB_PORT` を変更した場合はその値) |
+   | 認証 | パスワード |
    | ユーザー名 | `.env` の `POSTGRES_USER` |
    | パスワード | `.env` の `POSTGRES_PASSWORD` |
    | データベース | `.env` の `POSTGRES_DB` |
 
-3. 左のメニューからテーブルを選び、「データ選択」で行を確認・編集する。「SQLコマンド」で任意のSQLも実行できる。
+3. 接続したサーバーを展開し、データベース → スキーマ → テーブルの順にたどる。テーブルを右クリックして行を確認する。
+4. データベースを右クリックしてクエリエディターを開くと、任意の SQL を実行できる。結果は表で確認できる。
+
+- 接続情報には `.env` の値を使う。接続設定をリポジトリ内のファイル (`.vscode/settings.json` など) にコミットしない。パスワードの保存は拡張機能の保管機能に任せる。
+- `docker compose up` で起動した場合 (Dev Container を使わない場合) も、ホスト側の VS Code から `localhost` に接続できる。ポートは `127.0.0.1` のみに公開されている。
+- 接続できないときは、`db` が healthy か (`docker compose ps`)、ホストとポートが上の表のとおりかを確認する。
 
 ### psql (ターミナル)
 
@@ -294,7 +345,7 @@ DB側で保証している主なルールは次のとおりです (整合性ル�
 - JSON Schema による `content_json` の検証、参照先・アクセス権の検証、製品構成の重複・必須フィーチャーの検証は、DBではなくバックエンド(MCPサーバー)で行う。
 - 主キーのUUIDは `gen_random_uuid()`、`created_at` は `now()` がデフォルト。
 
-## 4. REST API / MCPツールの構築手順
+## 5. REST API / MCPツールの構築手順
 
 REST API と MCP ツールは同じプロセス ([app/main.py](app/main.py)) で動き、DBアクセスの処理を共通化して両方から呼び出す構成にします。
 
@@ -312,7 +363,7 @@ app/
 
 ### 手順1: テーブルを用意する
 
-`app/models.py` に ER 設計のテーブルが定義済みのため、まず対象のモデルを確認します。テーブルの追加・列の変更が必要な場合は [5. スキーマ変更手順](#5-スキーマ変更手順) に従ってください。
+`app/models.py` に ER 設計のテーブルが定義済みのため、まず対象のモデルを確認します。テーブルの追加・列の変更が必要な場合は [6. スキーマ変更手順](#6-スキーマ変更手順) に従ってください。
 
 ### 手順2: JSON の入出力モデルを定義する
 
@@ -448,7 +499,7 @@ def upsert_customer(customer: CustomerIn) -> dict:
 - ツールの確認は次の「GitHub Copilot での MCP 設定」で行うか、[MCP Inspector](https://github.com/modelcontextprotocol/inspector) (`npx @modelcontextprotocol/inspector`、Transport: Streamable HTTP、URL: `http://localhost:8000/mcp/`) を使う。
 - 認可・参照先の存在確認など、MCPサーバーで検証すると設計されているルールは `services.py` で実装し、REST と MCP で同じ検証が働くようにする。
 
-## 5. スキーマ変更手順
+## 6. スキーマ変更手順
 
 テーブルの追加、列の追加・変更・削除、制約・インデックスの変更は、**モデル ([app/models.py](app/models.py)) を編集し、Alembic でマイグレーションを作成**して行います。DBを直接 (Adminer や psql の DDL で) 変更しないでください。チームの全員と本番環境へ同じ変更を再現できなくなります。
 
@@ -474,7 +525,7 @@ def upsert_customer(customer: CustomerIn) -> dict:
    alembic upgrade head       # 再適用
    ```
 
-6. 列やテーブルの追加・削除に合わせて、`backend/seed/*.json` を更新する ([2. 初期投入データの編集手順](#2-初期投入データの編集手順))。
+6. 列やテーブルの追加・削除に合わせて、`backend/seed/*.json` を更新する ([3. 初期投入データの編集手順](#3-初期投入データの編集手順))。
 7. モデルとマイグレーションファイルを一緒にコミットする。
 
 ### 例: 列を追加する
@@ -527,51 +578,6 @@ alembic heads              # 最新のリビジョン (1つであること)
 alembic history            # 履歴
 ```
 
-## 6. GitHub Copilot での MCP 設定手順
-
-VS Code の GitHub Copilot (Agent モード) から、このバックエンドの MCP ツールを利用します。
-
-### 手順
-
-1. Dev Container 内でバックエンドを起動する (`uvicorn app.main:app --reload --host 0.0.0.0`)。
-2. リポジトリに `.vscode/mcp.json` を作成する。
-
-   ```json
-   {
-     "servers": {
-       "develop-assistant": {
-         "type": "http",
-         "url": "http://localhost:8000/mcp/"
-       }
-     }
-   }
-   ```
-
-   - Dev Container 内の VS Code では、コンテナ内の `localhost:8000` に接続される。
-   - URL 末尾の `/` を付けること (付けないとリダイレクトされ接続に失敗する場合がある)。
-   - チームで共有する場合はこのファイルをコミットする。認証情報を書かないこと。
-
-3. `.vscode/mcp.json` を開くと表示される **開始** をクリックするか、コマンドパレットの **MCP: List Servers** → `develop-assistant` → **Start Server** を実行する。
-4. Copilot Chat を **Agent** モードにし、ツールアイコン (「ツールの構成」) の一覧に `develop-assistant` のツール (`db_version` など) が表示されていることを確認する。
-5. チャットで利用する。例: 「`db_version` ツールで PostgreSQL のバージョンを教えて」。ツールの実行時には確認ダイアログが表示されるので許可する。
-
-### うまく動かないとき
-
-| 症状 | 確認すること |
-|---|---|
-| サーバーが起動できない | uvicorn が起動しているか。`curl localhost:8000/health` が `ok` を返すか |
-| ツールが表示されない | **MCP: List Servers** → サーバー → **Show Output** でログを確認。ツールを追加した後は uvicorn の再起動とサーバーの再起動を行う |
-| 接続エラー | URL が `http://localhost:8000/mcp/` (末尾 `/`) か。ポート 8000 がフォワードされているか |
-| 企業・組織のポリシーで利用できない | GitHub の組織設定で Copilot の「MCP servers in Copilot」が有効か管理者に確認する |
-
-### 補足: Dify / Claude Code から接続する場合
-
-同じ URL (`http://localhost:8000/mcp/`、Streamable HTTP) を使います。Claude Code の場合の例:
-
-```bash
-claude mcp add --transport http develop-assistant http://localhost:8000/mcp/
-```
-
 ## 7. JSON スキーマの編集手順
 
 `json_schema` 以外のテーブルの jsonb 列 (`content_revision.content_json`) の構造は、`json_schema.schema_json` の JSON Schema (draft 2020-12) で定義します。スキーマの変更にモデルの編集やマイグレーションは不要です (要件: [design/requiments/enviroment.md](../design/requiments/enviroment.md) の 4.3)。
@@ -617,7 +623,7 @@ claude mcp add --transport http develop-assistant http://localhost:8000/mcp/
 
 5. 新しい行として登録する。`schema_id` は新しい UUID、`schema_key` は既存と同じ値、`schema_version` は最新+1、`record_type`・`feature_domain` は既存の行と揃える。登録は次のどちらかで行う。
    - 成果物スキーマ (`sys.artifact`) を設計ファイルから登録する: `$id` の版を上げたうえで `python -m app.cli build-seed` を実行すると、`backend/seed/10_json_schema.json` に新しい版の行が追加される (旧版の行は残る。[設計ファイルから初期データを生成する](#設計ファイルから初期データを生成する))。続けて `python -m app.cli seed` を実行する。
-   - シードに追加する: `backend/seed/*.json` の `json_schema` に新しい行を書き、`python -m app.cli seed` を実行する ([2. 初期投入データの編集手順](#2-初期投入データの編集手順))。既存行は更新されないため、既存の行を書き換えず、新しい行を追加する。
+   - シードに追加する: `backend/seed/*.json` の `json_schema` に新しい行を書き、`python -m app.cli seed` を実行する ([3. 初期投入データの編集手順](#3-初期投入データの編集手順))。既存行は更新されないため、既存の行を書き換えず、新しい行を追加する。
    - スキーマ登録のAPI / MCPツールを使う (`POST /schemas`、`register_json_schema`)。`schema_json` はメタスキーマで検証され、`$id` を書く場合は `urn:das:schema:<schema_key>:<schema_version>` と一致している必要がある。シード投入はバックエンドの検証を通らないため、`validate.py` で事前に確認する。
 6. 新しいスキーマを使うプラットフォームに割り当てる。`platform_schema_binding` に `(platform_id, 新しい schema_id)` の行を追加する。複数プラットフォームで同じ行を共有できる。なお、`content_json` の検証に使うスキーマはリクエストで指定したもの (`schema_key` のみなら最新版) で、現時点では `platform_schema_binding` による絞り込みは行わない。
 7. 新しいスキーマで検証されることを確認する。違反する `content_json` を送って、HTTP 422 と `errors` が返ること、DBが更新されていないことを確認する。
@@ -626,7 +632,7 @@ claude mcp add --transport http develop-assistant http://localhost:8000/mcp/
    pytest
    ```
 
-8. `seed` ファイルの変更をコミットする。Adminer などで登録した場合は、[現在のDBの内容を初期データとして保存する](#現在のdbの内容を初期データとして保存する) でシードへ反映する。
+8. `seed` ファイルの変更をコミットする。VS Code の PostgreSQL 拡張機能などで登録した場合は、[現在のDBの内容を初期データとして保存する](#現在のdbの内容を初期データとして保存する) でシードへ反映する。
 
 ### 注意事項
 

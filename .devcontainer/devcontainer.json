@@ -6,12 +6,11 @@
   "shutdownAction": "stopCompose",
   "remoteUser": "vscode",
   "initializeCommand": "test -f .env || cp .env.example .env",
-  "forwardPorts": [3000, 8000, "db:5432", "adminer:8080"],
+  "forwardPorts": [3000, 8000, "db:5432"],
   "portsAttributes": {
     "3000": { "label": "Next.js (web)" },
     "8000": { "label": "FastAPI / MCP (backend)" },
-    "db:5432": { "label": "PostgreSQL 18" },
-    "adminer:8080": { "label": "Adminer (DB viewer)", "onAutoForward": "notify" }
+    "db:5432": { "label": "PostgreSQL 18" }
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
@@ -21,6 +20,7 @@
         "charliermarsh.ruff",
         "github.copilot",
         "github.copilot-chat",
+        "ms-ossdata.vscode-pgsql",
         "dbaeumer.vscode-eslint"
       ],
       "settings": {

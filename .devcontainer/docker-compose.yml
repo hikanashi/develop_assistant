@@ -1,9 +1,8 @@
 name: develop_assistant
 
-# DB と DB確認GUI はルートの compose と同じ定義を使う
+# DB はルートの compose と同じ定義を使う
 include:
   - ../compose/db.yaml
-  - ../compose/tools.yaml
 
 services:
   app:
