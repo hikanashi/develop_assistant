@@ -8,7 +8,7 @@ FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバック�
 |---|---|
 | REST API | `http://localhost:8000/` (Swagger UI: `/docs`、ヘルスチェック: `/health`) |
 | MCP | `http://localhost:8000/mcp/` (Streamable HTTP。末尾の `/` が必要) |
-| DB | PostgreSQL 18 (`db:5432`、ユーザー: `idb`、パスワード: `idbIDB108`、DB名: `IDB`) |
+| DB | PostgreSQL 18 (`db:5432`。ユーザー・パスワード・DB名は [.env](#環境変数-env) で設定) |
 | DB確認GUI | Adminer (`http://localhost:8080`) |
 
 ## 1. 環境構築手順
@@ -21,20 +21,50 @@ FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバック�
 ### 手順
 
 1. リポジトリをクローンして VS Code で開く (WSL の場合は WSL 側のファイルシステム上に置く)。
-2. コマンドパレットから **Dev Containers: Reopen in Container** を実行する。
-3. 初回はイメージのビルドと、`.devcontainer/post-create.sh` による次の処理が自動で行われる。
+2. 認証情報の設定ファイルを作成する ([環境変数 (.env)](#環境変数-env))。
+
+   ```bash
+   cp .env.example .env     # 必要なら .env のパスワードを編集する
+   ```
+
+   Dev Container では、`.env` がなければ `.env.example` から自動で作成される。
+3. コマンドパレットから **Dev Containers: Reopen in Container** を実行する。
+4. 初回はイメージのビルドと、`.devcontainer/post-create.sh` による次の処理が自動で行われる。
+   - `~/.bashrc` への psql 用接続情報の設定 (`.env` の値から。値はファイルに書き込まない)
    - `pip install -e "backend[dev]"` (依存パッケージのインストール)
    - `alembic upgrade head` (マイグレーション適用)
    - `python -m app.cli seed` (`backend/seed/*.json` の投入)
    - `npm install` (`web/` の依存パッケージ。Next.js は [web/README.md](../web/README.md) 参照)
-4. コンテナ内のターミナルで起動する。
+5. コンテナ内のターミナルで起動する。
 
    ```bash
    cd backend
    uvicorn app.main:app --reload --host 0.0.0.0
    ```
 
-5. `http://localhost:8000/health` が `{"status":"ok"}` を返せば完了。
+6. `http://localhost:8000/health` が `{"status":"ok"}` を返せば完了。
+
+### 環境変数 (.env)
+
+DB の認証情報は、リポジトリ直下の `.env` に分離しています。
+
+| ファイル | 内容 | Git |
+|---|---|---|
+| `.env.example` | 雛形。ユーザー名とDB名と、仮のパスワード (`change_me`) | コミットする |
+| `.env` | 実際の値。`.env.example` をコピーして作成する | **コミットしない** (`.gitignore` 済み) |
+
+| 変数 | 用途 |
+|---|---|
+| `POSTGRES_USER` | DB のユーザー名 |
+| `POSTGRES_PASSWORD` | DB のパスワード |
+| `POSTGRES_DB` | DB 名 (大文字小文字を区別する) |
+
+- `db`、`backend-init`、`backend`、Dev Container の `app` が、compose の `env_file` で `.env` を読み込む。認証情報と DB 名は `.env` のみで管理し、compose ファイル・ソースコード・README には値を書かない。
+- バックエンドは [app/config.py](app/config.py) で、これらの変数から接続URLを組み立てる (パスワードに記号が含まれても使える)。接続先ホストは `POSTGRES_HOST` (compose 内では `db`。未設定なら `localhost`)、ポートは `POSTGRES_PORT` (未設定なら `5432`)。`DATABASE_URL` を設定すると、それを優先する。
+- **`POSTGRES_*` は DB ボリュームの作成時にだけ反映される。** 変更した場合は `docker compose down -v` でボリュームを削除して作り直す (データも消える)。
+- `.env` がない状態で `docker compose` を実行すると `env file .../.env not found` で失敗する。`.env.example` をコピーする。
+- ポート番号 (`DB_PORT`、`BACKEND_PORT`、`WEB_PORT`、`ADMINER_PORT`) は認証情報ではないため、必要なときに `.env` へ追記するか、コマンドラインで指定する。
+- ローカル専用の値であり、本番 (Amazon RDS) の認証情報は使用しない。
 
 ### コンテナの構成
 
@@ -50,7 +80,7 @@ FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバック�
 
 ### Dev Container を使わずに全サービスを起動する
 
-リポジトリのルートで `docker compose up` を実行すると、DB・バックエンド・フロントエンド・DB確認GUIがすべて起動し、初期データも投入されます。VS Code 以外から動作を確認したい場合や、Dify など他のサービスと組み合わせて使う場合に利用します。
+リポジトリのルートで `docker compose up` を実行すると、DB・バックエンド・フロントエンド・DB確認GUIがすべて起動し、初期データも投入されます。VS Code 以外から動作を確認したい場合や、Dify など他のサービスと組み合わせて使う場合に利用します。**事前に `cp .env.example .env` で `.env` を作成してください** ([環境変数 (.env)](#環境変数-env))。
 
 ```bash
 docker compose up -d --build   # 起動 (-d でバックグラウンド。省略するとログを表示)
@@ -82,6 +112,7 @@ docker compose down -v         # 停止してDBのデータも削除
    - ファイル内の相対パスは、そのファイルのあるディレクトリが基準になる。
    - 同じプロジェクトのネットワークに参加するため、他のサービスは `db`、`backend` などのサービス名で参照できる。
    - ポートの公開は `127.0.0.1:${XXX_PORT:-既定値}:内部ポート` の形式にそろえる。
+   - 認証情報などの秘密の値は、ファイルに直接書かず、`.env` に変数を追加して `env_file: [../.env]` で読み込む。`.env.example` にも変数名と仮の値を追記する。
    - 名前付きボリュームやサービス名は、他のファイルと重複させない。
 2. `compose.yaml` の `include` にその1行を追加する (`# - compose/dify.yaml` のコメントを外す)。
 3. `docker compose config --quiet` で設定が正しいことを確認し、`docker compose up -d` を実行する。
@@ -98,7 +129,7 @@ ruff check .                 # Lint
 
 ### DBを初期状態へ戻す
 
-ホスト側で次を実行し、Dev Container または `docker compose up` で再度起動する (`-v` でDBのデータも削除される)。
+ホスト側で次を実行し、Dev Container または `docker compose up` で再度起動する (`-v` でDBのデータも削除される)。`.env` の `POSTGRES_*` を変更したときも、この手順が必要です。
 
 ```bash
 docker compose down -v                                        # ルートのcompose
@@ -185,15 +216,15 @@ python -m app.cli export -o seed/10_sample.json   # 出力先を指定
    |---|---|
    | システム | PostgreSQL |
    | サーバー | `db` |
-   | ユーザー名 | `idb` |
-   | パスワード | `idbIDB108` |
-   | データベース | `IDB` |
+   | ユーザー名 | `.env` の `POSTGRES_USER` |
+   | パスワード | `.env` の `POSTGRES_PASSWORD` |
+   | データベース | `.env` の `POSTGRES_DB` |
 
 3. 左のメニューからテーブルを選び、「データ選択」で行を確認・編集する。「SQLコマンド」で任意のSQLも実行できる。
 
 ### psql (ターミナル)
 
-コンテナ内では接続情報が環境変数に設定済みです。
+コンテナ内では接続情報が環境変数に設定済みです (`.env` の値。Dev Container では `post-create.sh` が `~/.bashrc` に `PGUSER` などを設定するため、新しく開いたターミナルで有効になります)。
 
 ```bash
 psql                                   # 対話モード
@@ -201,9 +232,15 @@ psql -c '\dt'                          # テーブル一覧
 psql -c 'select * from customer limit 5'
 ```
 
+`docker compose up` で起動した場合は、ホストから次のコマンドでも接続できます (db コンテナには `.env` の値が環境変数として入っています)。
+
+```bash
+docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+```
+
 ### ホストのクライアントから接続する
 
-VS Code がフォワードする `localhost:5432` に、ユーザー `idb`、パスワード `idbIDB108`、DB名 `IDB` で接続できます。
+VS Code がフォワードする `localhost:5432` に、`.env` の `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` で接続できます。
 
 ### テーブル構成と制約
 

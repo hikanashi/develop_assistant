@@ -8,7 +8,11 @@ target_metadata = SQLModel.metadata
 
 
 def run_migrations_offline() -> None:
-    context.configure(url=str(engine.url), target_metadata=target_metadata, literal_binds=True)
+    context.configure(
+        url=engine.url.render_as_string(hide_password=False),
+        target_metadata=target_metadata,
+        literal_binds=True,
+    )
     with context.begin_transaction():
         context.run_migrations()
 

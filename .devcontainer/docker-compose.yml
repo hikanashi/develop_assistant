@@ -21,12 +21,11 @@ services:
       - ..:/workspaces/develop_assistant:cached
       # コンテナ内から commit/push させない
       - ../.git:/workspaces/develop_assistant/.git:ro
+    # 認証情報は .env から読み込む。psql 用の PG* 変数は post-create.sh が ~/.bashrc に設定する
+    env_file:
+      - ../.env
     environment:
-      DATABASE_URL: postgresql+psycopg://idb:idbIDB108@db:5432/IDB
-      PGHOST: db
-      PGUSER: idb
-      PGPASSWORD: idbIDB108
-      PGDATABASE: IDB
+      POSTGRES_HOST: db
     depends_on:
       db:
         condition: service_healthy
