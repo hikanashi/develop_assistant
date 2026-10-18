@@ -51,7 +51,7 @@
 ### 0.4 設定項目に関する共通ルール
 
 - 認証情報 (DB のユーザー名・パスワード) とデータベース名は、設定項目に書かず `.env` にのみ記載する (ENV-019)。
-- 上記以外の項目 (サービス名、ファイル名、テーブル名など) は、設定項目から導出するか、`ER_DESIGN_FILE` / `JSON_SCHEMA_DESIGN_DIR` の記載から取る。本書に例として書かれたテーブル名・ファイル名 (`JSON_SCHEMA`、`CONTENT_REVISION` など) は本リポジトリの設計に基づく例であり、別のリポジトリでは各 Markdown ファイルの記載に読み替える。
+- 上記以外の項目 (サービス名、ファイル名、テーブル名など) は、設定項目から導出するか、`ER_DESIGN_FILE` / `JSON_SCHEMA_DESIGN_DIR` の記載から取る。本書に例として書かれたテーブル名・ファイル名 (`JSON_SCHEMA`、`CONTENT_REVISION` など) は例であり、実際の名称は各 Markdown ファイルの記載に読み替える。設定項目以外でリポジトリ固有の内容が必要で、記載から分からない場合は、ユーザーに確認する (ENV-035)。
 
 ## AIへの指示
 
@@ -159,7 +159,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 |---|---|
 | ENV-032 | 構築に必要な設定 (設計ファイルの場所、ディレクトリ、名称、バージョン、ポート) は、[0. 設定項目](#0-設定項目) の 1 か所だけで定義する。この表を変更するだけで、AI が別のリポジトリ・環境で同じ構築を行える。 |
 | ENV-033 | データベースのスキーマ (テーブル、列、制約、整合性ルール) は、`ER_DESIGN_FILE` の記載に基づいて構築する。モデル・マイグレーション・サンプルデータのいずれも、`ER_DESIGN_FILE` を正本とする。 |
-| ENV-034 | JSON スキーマは、`JSON_SCHEMA_DESIGN_DIR` 以下のすべての Markdown ファイル ([0.3](#03-json-スキーマ設計ファイルの対象)) の記載に基づいて構築する。JSON スキーマ本体・例・検証スクリプトの格納場所は、各 Markdown の記載 (本リポジトリでは「配置と生成」) に従う。 |
+| ENV-034 | JSON スキーマは、`JSON_SCHEMA_DESIGN_DIR` 以下のすべての Markdown ファイル ([0.3](#03-json-スキーマ設計ファイルの対象)) の記載に基づいて構築する。JSON スキーマ本体・例・検証スクリプトの格納場所は、各 Markdown の記載 に従う。 |
 | ENV-035 | JSON スキーマが対応するレコードや列は、各 Markdown ファイルに記載された内容に従う。Markdown の記載から特定できない場合 (対応するテーブル・列・`record_type` などが書かれていない、複数の解釈ができる、複数の Markdown 間で矛盾するなど) は、推測せず、ユーザーに確認してから進める。 |
 | ENV-036 | サンプルデータは、`ER_DESIGN_FILE` のデータベーススキーマに従って生成する。全テーブルを対象とし、外部キー・CHECK 制約・整合性ルールを満たす (詳細は [4.5](#サンプルデータ-env-027-env-036))。 |
 | ENV-037 | 環境の実装後に、データベースにサンプルデータが格納されていることまで確認する ([4.5](#45-構築後の確認-env-037))。 |
@@ -173,12 +173,12 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 
 `JSON_SCHEMA_DESIGN_DIR` 以下の各 Markdown (JSON スキーマの設計ファイル) には、少なくとも次の内容を記載する。記載がなければ、ENV-035 に従いユーザーに確認する。
 
-| 内容 | 本リポジトリでの記載例 |
-|---|---|
-| JSON スキーマ本体と例の格納場所 | `schemas/sys.artifact.schema.json`、`schemas/examples/<種別キー>.json` |
-| スキーマの識別 (キー・版・`$id` の規則) | `$id` は `urn:das:schema:<schema_key>:<schema_version>` |
-| スキーマを適用するレコード・列 | `CONTENT_REVISION.content_json` (`record_type` = `ARTIFACT`) |
-| スキーマの登録先 (テーブルに格納する場合) | `JSON_SCHEMA` テーブルの 1 行 |
+| 内容 |
+|---|
+| JSON スキーマ本体と例の格納場所 |
+| スキーマの識別 (キー・版・`$id` の規則) |
+| スキーマを適用するレコード・列 |
+| スキーマの登録先 (テーブルに格納する場合) |
 
 ## 3. 技術スタック
 
@@ -240,7 +240,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 
 ### 4.3 JSON スキーマによる jsonb 列の定義と検証 (ENV-021〜ENV-024)
 
-この節は、`JSON_SCHEMA_DESIGN_DIR` が「JSON スキーマをデータベースのテーブルに格納し、jsonb 列を検証する」方式を定義している場合に適用する (本リポジトリは `JSON_SCHEMA` テーブル方式)。そうでない設計の場合は、各 Markdown の定義に従い、ENV-022・ENV-023 の検証・エラー応答の要件だけを同様に満たす。以下のテーブル名・列名は本リポジトリの設計に基づく例であり、別のリポジトリでは `ER_DESIGN_FILE` と `JSON_SCHEMA_DESIGN_DIR` の記載に読み替える (ENV-035)。
+この節は、`JSON_SCHEMA_DESIGN_DIR` が「JSON スキーマをデータベースのテーブルに格納し、jsonb 列を検証する」方式を定義している場合に適用する。そうでない設計の場合は、各 Markdown の定義に従い、ENV-022・ENV-023 の検証・エラー応答の要件だけを同様に満たす。以下のテーブル名・列名は例であり、`ER_DESIGN_FILE` と `JSON_SCHEMA_DESIGN_DIR` の記載に読み替える。記載から分からない場合はユーザーに確認する (ENV-035)。
 
 ユーザーが JSON スキーマを動的に変更できるよう、jsonb 列の構造はアプリケーションコードやマイグレーションに固定せず、`JSON_SCHEMA` テーブルのデータとして定義する。
 
@@ -254,7 +254,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 JSON スキーマの扱いは次のとおりとする。
 
 - JSON スキーマの仕様は draft 2020-12 とする (`JSON_SCHEMA_DESIGN_DIR` が別の仕様を定める場合はそれに従う)。
-- 登録済みの `JSON_SCHEMA` 行は更新・削除できない (本リポジトリの整合性ルール8)。スキーマの変更は、同じ `schema_key` で `schema_version` を増やした新しい行の追加として行う。既存のリビジョンは作成時点の `schema_id` を参照し続ける。
+- 登録済みの `JSON_SCHEMA` 行は更新・削除できない (整合性ルール)。スキーマの変更は、同じ `schema_key` で `schema_version` を増やした新しい行の追加として行う。既存のリビジョンは作成時点の `schema_id` を参照し続ける。
 - スキーマの追加・変更はデータの投入 (`SEED_DIR/*.json` またはAPI) で行い、Alembic のマイグレーションや再デプロイを要さない。設計ファイル (JSON スキーマ本体と例) を編集した場合は、[生成ツール](#44-初期データの生成ツール-env-025env-028) で `SEED_DIR` に反映する。
 - `JSON_SCHEMA` へ登録する `schema_json` 自体も、登録前に JSON Schema のメタスキーマで検証する。不正なスキーマは登録しない。
 - 検証エラーの応答は REST では HTTP 422 とし、MCP ではツールのエラーとして、同じ内容を構造化データで返す。形式は API ガイドラインのエラー形式 (`code` / `message` / `details`) とし、違反の詳細とスキーマの識別情報は `details` に入れる。
@@ -284,13 +284,13 @@ JSON スキーマの扱いは次のとおりとする。
 
 ### 4.4 初期データの生成ツール (ENV-025〜ENV-028)
 
-JSON スキーマの設計 (`JSON_SCHEMA_DESIGN_DIR` 以下の Markdown と、それが指す JSON スキーマ本体・例) を変更したとき、その内容を初期投入データへ反映できるよう、設計ファイルを初期投入データへ変換するツールを用意する。ツールは本リポジトリの `BACKEND_DIR/app/seed_builder.py` を参考実装とするが、別のリポジトリでは、本節の仕様に従って AI が実装する。
+JSON スキーマの設計 (`JSON_SCHEMA_DESIGN_DIR` 以下の Markdown と、それが指す JSON スキーマ本体・例) を変更したとき、その内容を初期投入データへ反映できるよう、設計ファイルを初期投入データへ変換するツールを用意する。ツールは、本節の仕様に従って AI が実装する。
 
 | ID | 要件 |
 |---|---|
-| ENV-025 | 生成ツールを実行すると、`JSON_SCHEMA_DESIGN_DIR` 以下のすべての Markdown に定義された JSON スキーマを、スキーマの登録先テーブル (本リポジトリでは `JSON_SCHEMA`) の初期投入データに変換し、`SEED_DIR/10_json_schema.json` に格納する。複数の Markdown がある場合は、すべての JSON スキーマを 1 つの出力に統合する。 |
-| ENV-026 | 生成ツールを実行すると、各 Markdown が定義する例 (本リポジトリでは `schemas/examples/*.json` の `valid`) を、データベースの初期投入データ (本リポジトリでは `CONTENT_RECORD` / `CONTENT_REVISION`) に変換し、`SEED_DIR/20_artifact_examples.json` に格納する。変換先のテーブル・列は、各 Markdown の記載に従う (ENV-035)。 |
-| ENV-027 | `ER_DESIGN_FILE` の全テーブルについて、各テーブル 1 レコード以上の初期投入データを作成し、`SEED_DIR` に格納する (`00_sample_master.json`)。テーブル数は `ER_DESIGN_FILE` の定義に従う (本リポジトリは 12 テーブル)。 |
+| ENV-025 | 生成ツールを実行すると、`JSON_SCHEMA_DESIGN_DIR` 以下のすべての Markdown に定義された JSON スキーマを、スキーマの登録先テーブル の初期投入データに変換し、`SEED_DIR/10_json_schema.json` に格納する。複数の Markdown がある場合は、すべての JSON スキーマを 1 つの出力に統合する。 |
+| ENV-026 | 生成ツールを実行すると、各 Markdown が定義する例 (`valid`) を、データベースの初期投入データに変換し、`SEED_DIR/20_artifact_examples.json` に格納する。変換先のテーブル・列は、各 Markdown の記載に従う (ENV-035)。 |
+| ENV-027 | `ER_DESIGN_FILE` の全テーブルについて、各テーブル 1 レコード以上の初期投入データを作成し、`SEED_DIR` に格納する (`00_sample_master.json`)。テーブル数は `ER_DESIGN_FILE` の定義に従う。 |
 | ENV-028 | 生成ツールの使い方を `README_FILE` の「初期投入データの編集手順」に記載する。 |
 
 #### ツール仕様 (ENV-025・ENV-026)
@@ -302,20 +302,20 @@ JSON スキーマの設計 (`JSON_SCHEMA_DESIGN_DIR` 以下の Markdown と、�
 | 入力 | `JSON_SCHEMA_DESIGN_DIR` の記載に従う JSON スキーマ本体 |
 | 出力 | `SEED_DIR/10_json_schema.json`、`SEED_DIR/20_artifact_examples.json` (形式は 4.1 のとおり) |
 
-ENV-025 (スキーマの登録先テーブル。本リポジトリでは `JSON_SCHEMA`) の変換規則:
+ENV-025 (スキーマの登録先テーブル) の変換規則:
 
 - 入力のスキーマを JSON Schema のメタスキーマ (draft 2020-12) で検証し、通過しなければ出力せずエラー終了する (ENV-021 の「不正なスキーマは登録しない」)。
-- `schema_json` にはスキーマ全体をそのまま格納する。`schema_key` と `schema_version` は `$id` (本リポジトリでは `urn:das:schema:<schema_key>:<schema_version>`) から取る。`record_type`・`feature_domain` など、スキーマの適用対象を示す列は、各 Markdown の記載に従う (本リポジトリでは `record_type` = `ARTIFACT`、`feature_domain` = NULL)。
+- `schema_json` にはスキーマ全体をそのまま格納する。`schema_key` と `schema_version` は `$id` から取る。`record_type`・`feature_domain` など、スキーマの適用対象を示す列は、各 Markdown の記載に従う。
 - `schema_id` は `$id` から決定的に生成する (UUIDv5、名前空間 `NAMESPACE_URL`、名前は `$id` の値)。再生成しても同じ値になり、手書きのサンプル (ENV-027) からも同じ規則で参照できる。
-- 登録済みスキーマは更新できない (本リポジトリの整合性ルール8) ため、出力ファイルに既にある別の版 (`schema_key` が同じで `schema_version` が異なる行) は残し、新しい版の行を追加する。同じ `schema_key`・`schema_version` で `schema_json` が異なる場合は、版を上げるよう促してエラー終了する。複数の Markdown から同じ `schema_key`・`schema_version` が重複して定義された場合も、エラー終了する。
+- 登録済みスキーマは更新できない (整合性ルール) ため、出力ファイルに既にある別の版 (`schema_key` が同じで `schema_version` が異なる行) は残し、新しい版の行を追加する。同じ `schema_key`・`schema_version` で `schema_json` が異なる場合は、版を上げるよう促してエラー終了する。複数の Markdown から同じ `schema_key`・`schema_version` が重複して定義された場合も、エラー終了する。
 
-ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_REVISION`) の変換規則:
+ENV-026 (成果物の例) の変換規則:
 
 - 各ファイルの `valid` の要素 1 件を、`CONTENT_RECORD` 1 行と `CONTENT_REVISION` 1 行 (`revision_no` = 1、`content_json` = 要素そのまま、`schema_id` = ENV-025 で生成した行、`change_reason` = 例からの初期投入であることを示す文言) に変換する。`invalid` は変換しない。
-- 変換前に、すべての `valid` を対応するスキーマで検証する。通過しない要素があれば、出力せずエラー終了する (本リポジトリでは `validate.py` と同じ判定)。
+- 変換前に、すべての `valid` を対応するスキーマで検証する。通過しない要素があれば、出力せずエラー終了する。
 - `CONTENT_RECORD` は `record_type` = `ARTIFACT`、`feature_domain` = NULL、作成元なし (`origin_platform_id`・`origin_product_id` は NULL の共通レコード) とする。`logical_key` は `<ファイル名の種別キー>.<ファイル内の連番 (001 から)>` (例: `sys1.actor.001`) とする。
 - `record_id` と `revision_id` は `logical_key` から決定的に生成する (UUIDv5、名前空間 `NAMESPACE_URL`、名前はそれぞれ `urn:das:seed:record:<logical_key>`、`urn:das:seed:revision:<logical_key>:1`)。
-- 例の中の参照 (本リポジトリでは `RecordRef` の `record_id`) は書き換えない。参照先の存在確認は書き込み時の検証であり、初期投入では行わない。
+- 例の中の参照 は書き換えない。参照先の存在確認は書き込み時の検証であり、初期投入では行わない。
 - 出力は、キーの並び・配列の順序を固定し、同じ入力から常に同じ内容になるようにする (差分を最小にし、`--check` を成立させるため)。
 
 #### テスト
@@ -343,12 +343,12 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 
 #### サンプルデータ (ENV-027, ENV-036)
 
-- `ER_DESIGN_FILE` に定義された全テーブルを対象とする。本リポジトリの対象は `CUSTOMER` / `PRODUCT` / `PLATFORM` / `PLATFORM_VERSION` / `PRODUCT_VERSION` / `CONTENT_RECORD` / `CONTENT_REVISION` / `REVISION_PARENT` / `JSON_SCHEMA` / `PLATFORM_SCHEMA_BINDING` / `PLATFORM_VERSION_CONTENT` / `PRODUCT_VERSION_CONTENT` の 12 テーブルである。JSON スキーマの登録先テーブル (本リポジトリでは `JSON_SCHEMA`) の行は ENV-025 の出力が担うため、`00_sample_master.json` には含めず、他のテーブル (本リポジトリでは `PLATFORM_SCHEMA_BINDING`) から ENV-025 と同じ規則で `schema_id` を参照する。
+- `ER_DESIGN_FILE` に定義された全テーブルを対象とする。JSON スキーマの登録先テーブルの行は ENV-025 の出力が担うため、`00_sample_master.json` には含めず、他のテーブルから ENV-025 と同じ規則で `schema_id` を参照する。
 - 各行は、外部キー・CHECK 制約・整合性ルール (`ER_DESIGN_FILE` に記載) を満たす。jsonb 列の値は、対応する JSON スキーマで検証して通過する内容とする。
 - 列の型、NULL 可否、列挙値 (CHECK 制約) は `ER_DESIGN_FILE` の記載に従う。`ER_DESIGN_FILE` に記載のない列・テーブルを追加しない。
 - 主キーは、他ファイルの行から参照できるよう、固定値で書く。他の行と重複しない値とし、ENV-026 の生成値とは重ならないようにする。
 - 認証情報・データベース名を含めない (ENV-019)。
-- 本リポジトリの現行の `sys.artifact` は `ARTIFACT` 用のため、サンプルの `CONTENT_RECORD` は `record_type` = `ARTIFACT` とする。`FEATURE` 用のスキーマを追加した際は、あわせてサンプルを追加する。`REVISION_PARENT` は、同一レコードの 2 つのリビジョンを `PREVIOUS` で結ぶ行とする。製品の `base_platform_version_id` は、サンプルのプラットフォームバージョンを参照する。
+- サンプルの `CONTENT_RECORD` の `record_type` は、現行の JSON スキーマが対象とする種別に合わせる。新しい種別のスキーマを追加した際は、あわせてサンプルを追加する。`REVISION_PARENT` は、同一レコードの 2 つのリビジョンを `PREVIOUS` で結ぶ行とする。製品の `base_platform_version_id` は、サンプルのプラットフォームバージョンを参照する。
 
 ### 4.6 REST API の仕様と実装 (ENV-041〜ENV-043, ENV-046〜ENV-048)
 
