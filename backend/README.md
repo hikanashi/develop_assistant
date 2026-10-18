@@ -102,6 +102,22 @@ docker compose down -v         # 停止してDBのデータも削除
 - スキーマ変更のコマンドは `docker compose exec backend alembic ...` のように実行する。
 - Dev Container と同時に起動しない (同じプロジェクト・同じDBを共有するため、どちらか一方を使う)。
 
+### docker compose up 後に Swagger UI で REST API を確認する
+
+`docker compose up` (または `docker compose up -d backend`) の後、ブラウザで REST API の仕様と動作を確認できます。
+
+1. `docker compose ps` で、`backend` が `healthy`、`backend-init` が `Exited (0)` であることを確認する (`curl localhost:8000/health` が `{"status":"ok"}` を返せばよい)。
+2. ブラウザで `http://localhost:8000/docs` を開く (ポートを変えた場合は `BACKEND_PORT` の値)。
+3. 画面上部に `develop_assistant backend API 1.0.0 OAS 3.1` と表示され、`json-schema`・`record` の operation (`listSchemas`、`createRecord` など) が並んでいることを確認する。
+   - 表示されているのは、FastAPI が実装から自動生成した仕様ではなく、[openapi/openapi.yaml](../openapi/openapi.yaml) (`http://localhost:8000/openapi.yaml`) です。
+4. 画面下部の **Schemas** で `ArtifactContent` を開き、`SYS.1〜SYS.3 成果物` などのスキーマが展開されていることを確認する。仕様の外部参照 (`$ref: /v1/schemas/by-key/sys.artifact/schema-json`) が、バックエンドのスキーマテーブルから解決されている状態です。画面上部に `Errors` / `Resolver error` が出ていないことも確認する。
+5. operation を試す。例: `listSchemas` を開き、**Try it out** → **Execute** を押すと、登録済みのスキーマの一覧 (`sys.artifact` など) が返る。`getSchemaByKey` に `schemaKey` = `sys.artifact` を指定すると、スキーマ本体 (`schemaJson`) まで取得できる。
+
+- 認証は未実装のため、**Authorize** で値を入力する必要はない (仕様には Bearer 認証を記載している)。
+- Swagger UI の画面 (JavaScript / CSS) は、CDN (`cdn.jsdelivr.net`) から読み込まれる。インターネットに接続できない環境では、`/docs` が空白になる。その場合は `http://localhost:8000/openapi.yaml` を VS Code などで開いて確認する。
+- `openapi/openapi.yaml` を編集した場合は、ブラウザを再読み込みすれば反映される (バックエンドの再起動は不要。[8. OpenAPI 仕様の編集手順](#8-openapi-仕様の編集手順))。
+- 画面が表示されない、または 404 になるときは、`docker compose logs backend` を確認し、`openapi/` が `backend` コンテナの `/openapi` にマウントされているか (`docker compose exec backend ls /openapi`) を確認する。
+
 ### compose ファイルを追加する (Dify など)
 
 ルートの [compose.yaml](../compose.yaml) は、`compose/` 配下の種類別ファイルを `include` で読み込むだけの構成です。

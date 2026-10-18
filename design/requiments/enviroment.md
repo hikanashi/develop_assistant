@@ -169,7 +169,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-043 | `OPENAPI_FILE` には、JSON スキーマテーブルのスキーマを、スキーマを取得する URL による外部参照 (`$ref`) として記載する。URL にはホストを書かず (パスだけ)、`version` も指定しない (最新版)。 |
 | ENV-046 | REST API の仕様 (`OPENAPI_FILE`) に合わせて、REST API と MCP ツールの処理を共通化する。REST の operation と MCP ツールは 1 対 1 に対応させ、業務処理・検証・エラー内容は共通の処理 (`services.py`) に 1 つだけ実装する ([4.6](#rest-api-と-mcp-の処理の共通化-env-046))。 |
 | ENV-047 | `OPENAPI_FILE` の外部参照は、仕様を配信するホストを基準に解決される。ローカルと本番の切り替えは、`OPENAPI_FILE` を書き換えず、仕様を配信するバックエンドのホストで行う ([4.6](#外部参照の環境の切り替え-env-047))。 |
-| ENV-048 | バックエンドは `OPENAPI_FILE` を `/openapi.yaml` で配信し、`/docs` (Swagger UI) で表示する。仕様内の外部参照は、`/docs` 上で解決して確認できる ([4.6](#仕様の配信と確認-env-048))。 |
+| ENV-048 | バックエンドは `OPENAPI_FILE` を `/openapi.yaml` で配信し、`/docs` (Swagger UI) で表示する。仕様内の外部参照は、`/docs` 上で解決して確認できる。`docker compose up` の後に Swagger UI で確認する手順を `README_FILE` に記載する ([4.6](#仕様の配信と確認-env-048))。 |
 
 `JSON_SCHEMA_DESIGN_DIR` 以下の各 Markdown (JSON スキーマの設計ファイル) には、少なくとも次の内容を記載する。記載がなければ、ENV-035 に従いユーザーに確認する。
 
@@ -393,6 +393,7 @@ JSON スキーマテーブルのスキーマを、REST API で取得できるよ
 | 配信 | バックエンドが `OPENAPI_FILE` を `/openapi.yaml` で配信する。コンテナには、`OPENAPI_DIR` を `/openapi` に読み取り専用でマウントする (本番では、イメージまたはデプロイ物に含める)。ファイルのパスは、環境変数 `OPENAPI_FILE` で変更できる |
 | 表示 | `/docs` (Swagger UI) が `/openapi.yaml` を読み込んで表示する。FastAPI が実装から自動生成する仕様ではなく、`OPENAPI_FILE` を表示する |
 | 確認 | 仕様を編集したら、バックエンドを起動して `/docs` を開き、エラー表示がないこと、外部参照のスキーマ (例: `ArtifactContent`) が展開されることを確認する |
+| 確認手順 (`README_FILE`) | `docker compose up` の後に Swagger UI で確認する手順を、`README_FILE` に記載する。次の内容を含める: (1) `backend` が healthy、`backend-init` が正常終了であることの確認、(2) `/docs` を開く URL (ポートは `BACKEND_PORT`)、(3) 表示される内容 (タイトル・operation の一覧。`OPENAPI_FILE` の内容であること)、(4) 外部参照のスキーマが展開され、`Resolver error` が出ていないことの確認、(5) **Try it out** による operation の実行例、(6) 認証が未実装のため **Authorize** が不要であること、(7) Swagger UI の画面を CDN から読み込むため、オフラインでは `/docs` が空白になること (代替: `/openapi.yaml` を直接開く)、(8) 表示されないときの確認項目 (`docker compose logs backend`、`/openapi` のマウント) |
 | 認証 | `/openapi.yaml` と `/docs` は、`/health` と同様に、認証を要求しない運用用のエンドポイントとして、OpenAPI の対象外とする |
 
 #### REST API と MCP の処理の共通化 (ENV-046)
@@ -507,7 +508,7 @@ COMPOSE_DIR/
 
 | 章 | 内容 |
 |---|---|
-| 1 | 環境構築手順 (Dev Container、ルートの `docker compose up`、Compose ファイルの追加方法、フロントエンドとの共存) |
+| 1 | 環境構築手順 (Dev Container、ルートの `docker compose up`、`docker compose up` 後の Swagger UI での確認手順 (ENV-048)、Compose ファイルの追加方法、フロントエンドとの共存) |
 | 2 | GitHub Copilot での MCP 設定手順 (1 の環境構築手順の直後に記載する) |
 | 3 | 初期投入データの編集手順 (生成ツールの使い方を含む。ENV-028) |
 | 4 | DB の内容確認手順 (VS Code の PostgreSQL 拡張機能の手順を含む。ENV-014。[4.5 構築後の確認](#45-構築後の確認-env-037) の手順も含む) |
