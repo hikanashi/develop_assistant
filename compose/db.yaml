@@ -2,27 +2,16 @@ services:
   db:
     image: postgres:18
     restart: unless-stopped
-    # 認証情報は .env から読み込む (POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB)。
-    # .env がない場合は PostgreSQL を起動せず、何もせずに待機する (バックエンドはファイルストアで動く)
+    # 認証情報は必須の .env から読み込む。
     env_file:
-      - path: ../.env
-        required: false
-    entrypoint:
-      - sh
-      - -c
-      - |
-        if [ -z "$$POSTGRES_PASSWORD" ]; then
-          echo ".env がないため PostgreSQL を起動しません (バックエンドは backend/localdata に保存します)"
-          exec sleep infinity
-        fi
-        exec docker-entrypoint.sh postgres
+      - ../.env
     ports:
       - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       # PostgreSQL 18 以降は /var/lib/postgresql 配下にマウントする
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "[ -z \"$$POSTGRES_PASSWORD\" ] || pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 10

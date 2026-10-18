@@ -20,7 +20,6 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.compiler import compiles
 from sqlmodel import Field, SQLModel
 
 # 制約名を固定し、マイグレーションの差分を安定させる
@@ -31,12 +30,6 @@ SQLModel.metadata.naming_convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s",
     "pk": "pk_%(table_name)s",
 }
-
-
-@compiles(JSONB, "sqlite")
-def _jsonb_as_json_on_sqlite(type_: JSONB, compiler: Any, **kw: Any) -> str:
-    """ファイルストア (SQLite) では JSONB を JSON として扱う。"""
-    return "JSON"
 
 
 class UTCDateTime(TypeDecorator[datetime]):
@@ -158,7 +151,6 @@ class ContentRecord(SQLModel, table=True):
             "logical_key",
             unique=True,
             postgresql_where=text("origin_platform_id IS NOT NULL"),
-            sqlite_where=text("origin_platform_id IS NOT NULL"),
         ),
         Index(
             "uq_content_record_product_logical_key",
@@ -166,14 +158,12 @@ class ContentRecord(SQLModel, table=True):
             "logical_key",
             unique=True,
             postgresql_where=text("origin_product_id IS NOT NULL"),
-            sqlite_where=text("origin_product_id IS NOT NULL"),
         ),
         Index(
             "uq_content_record_common_logical_key",
             "logical_key",
             unique=True,
             postgresql_where=text("origin_platform_id IS NULL AND origin_product_id IS NULL"),
-            sqlite_where=text("origin_platform_id IS NULL AND origin_product_id IS NULL"),
         ),
     )
 
