@@ -12,11 +12,12 @@
 |---|---|---|
 | `ER_DESIGN_FILE` | `design/database/er-design.md` | データベースのスキーマ (テーブル・列・制約・整合性ルール) を記載した Markdown ファイル。テーブル定義と初期データ生成の正本。1 ファイルのみ指定する |
 | `JSON_SCHEMA_DESIGN_DIR` | `design/database` | JSON スキーマの設計を記載した Markdown ファイルを置くディレクトリ。**このディレクトリ以下のすべての `.md` ファイルを対象とする** (対象の決め方は [0.3](#03-json-スキーマ設計ファイルの対象))。JSON スキーマの格納場所、対応するレコード・列は、各ファイルの記載に従う (ENV-034・ENV-035) |
+| `API_GUIDELINE_FILE` | `design/requiments/api-guideline.md` | REST API の作成規約 (命名、ステータス、エラー形式、認証、バージョニングなど) を記載した Markdown ファイル。REST API の作成・変更は、このファイルに従う (ENV-041)。1 ファイルのみ指定する |
 | `COMPOSE_ENTRY` | `compose.yaml` | Docker Compose の起点ファイル |
 | `COMPOSE_DIR` | `compose` | サービスの種類ごとに分割した Compose ファイルの配置先 |
-| `COMPOSE_PROJECT` | `develop_assistant` | Compose のプロジェクト名 (既存環境と重ならない名前にする) |
-| `BACKEND_IMAGE` | `das-backend:dev` | バックエンドのイメージ名 |
-| `DB_PORT` / `BACKEND_PORT` | 5432 / 8000 | ホスト側の公開ポートの既定値 |
+| `COMPOSE_PROJECT` | `inteligent_database` | Compose のプロジェクト名 (既存環境と重ならない名前にする) |
+| `BACKEND_IMAGE` | `idb-backend:dev` | バックエンドのイメージ名 |
+| `DB_PORT` / `BACKEND_PORT` / `OPENAPI_EDITOR_PORT` | 5432 / 8000 / 8081 | ホスト側の公開ポートの既定値 |
 
 ### 0.2 固定値 (変更しない)
 
@@ -31,6 +32,9 @@
 | `PROD_DB` | Amazon RDS for PostgreSQL | 本番のデータベース |
 | `BACKEND_STACK` | FastAPI (REST API) と FastMCP (MCP サーバー) | バックエンドの実装方式。ライブラリは [3.1](#31-バックエンド) |
 | `MCP_CLIENTS` | Dify、GitHub Copilot、Claude Code | MCP でバックエンドに接続する利用者 |
+| `OPENAPI_DIR` | `openapi` | OpenAPI 仕様を置くディレクトリ |
+| `OPENAPI_FILE` | `openapi/openapi.yaml` | OpenAPI 3.1 の仕様 (編集用)。OpenAPI 編集ツールで作成・編集する。JSON スキーマテーブルのスキーマは外部参照 (URL) で記載する (ENV-043) |
+| `OPENAPI_BUNDLED_FILE` | `openapi/openapi.bundled.yaml` | `OPENAPI_FILE` と JSON スキーマテーブルのスキーマを結合した、実装用の生成ファイル。手で編集しない (ENV-044) |
 
 - Python は 3.13 以上を使う。バージョンは設定項目ではない。開発環境に入っている Python が 3.13 未満の場合は、AI が対応方法 (Python のインストール・更新、コンテナ内の Python を使うなど) をユーザーに確認してから進める (ENV-038)。
 
@@ -40,7 +44,7 @@
 
 - 対象は、指定したディレクトリ以下 (サブディレクトリを含む) にある**すべての `.md` ファイル**とする。Markdown ファイルをディレクトリに追加すれば、設定を変えずに対象へ加わる。
 - パスの昇順に処理する。
-- `ER_DESIGN_FILE` が同じディレクトリ以下にある場合は、対象から除外する (本リポジトリの `design/database/er-design.md` が該当する)。
+- `ER_DESIGN_FILE` が同じディレクトリ以下にある場合は、対象から除外する。
 - JSON スキーマの設計が書かれていない Markdown (README など) は、対象から除外する。除外したファイルは、作業の報告に一覧で示す。JSON スキーマの設計かどうかを判断できないファイルは、ユーザーに確認する。
 - ディレクトリが存在しない場合、または対象の Markdown が 1 つもない場合は、ユーザーに確認する。
 - 各ファイルに、スキーマの格納場所と、対応するレコード・列が記載されている必要がある (ENV-035)。
@@ -53,11 +57,14 @@
 ## AIへの指示
 
 - 本書に従ってローカル開発環境を構築・保守する。まず [0. 設定項目](#0-設定項目) を読み、各キーの値を確定してから作業する。
+- REST API は `API_GUIDELINE_FILE` に従って作成する (ENV-041)。JSON スキーマテーブルのスキーマを OpenAPI へ取り込む方式は、開発環境を確認した上で、メリット・デメリットとできること・できないことを示し、ユーザーに選ばせる (ENV-042。[4.6](#46-rest-api-の仕様と実装-env-041env-045))。
 - 次の場合は、実装前にユーザーへ確認する (質問は `ask_user` など対話の手段で行い、推測で進めない)。
   - `JSON_SCHEMA_DESIGN_DIR` 以下の Markdown から、JSON スキーマが対応するレコードや列を特定できない場合 (ENV-035)。
   - 設定項目の値が、対象リポジトリの既存の環境 (ディレクトリ、サービス名、ボリューム名、ポート、Compose プロジェクト名、Dev Container など) と衝突する場合。
   - 設定項目に定めた名称・ポートを、既存環境の都合で変更する必要がある場合。
   - 開発環境に入っている Python が 3.13 未満の場合 (ENV-038)。
+  - JSON スキーマテーブルのスキーマを OpenAPI へ取り込む方式 (対象スキーマ、参照 URL の形式、結合方式) を決めるとき (ENV-042)。決定後は、結果を ADR として `design/requiments/adr/` に追加する。
+  - `API_GUIDELINE_FILE` が存在しない場合、またはその記載が他の要件と矛盾する場合。
   - 本書に記載のないライブラリ・サービスを利用する場合。承認されたものは「[承認済みの追加ライブラリ・サービス](#32-承認済みの追加ライブラリサービス)」に追記する。
 - 認証情報とデータベース名は `.env` にのみ記載し、本書・compose ファイル・ソースコード・ドキュメントには値を書かない (ENV-019)。
 - 要件は ID (`ENV-xxx`) で参照できる。変更時は該当 ID の記述を更新する。
@@ -141,7 +148,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-013 | ローカルの PostgreSQL の初期データは、JSON 形式のファイルで定義できる。 |
 | ENV-014 | データベースの内容を、VS Code の PostgreSQL 拡張機能で簡単に確認できる。Adminer など、確認専用のサービスは Compose に含めない。 |
 | ENV-015 | データベースの内容を、初期投入データとして使える JSON 形式でエクスポートできる。 |
-| ENV-016 | リポジトリのルートで `docker compose up` を実行すると、バックエンドとデータベースがすべて起動し、初期データが投入される。既存のフロントエンドのサービスがある場合は、それも従来どおり起動する (ENV-031)。 |
+| ENV-016 | リポジトリのルートで `docker compose up` を実行すると、バックエンドとデータベースがすべて起動し、初期データが投入される。既存のフロントエンドのサービスがある場合は、それも従来どおり起動する (ENV-031)。OpenAPI 編集ツール (ENV-045) も起動する。 |
 | ENV-017 | Compose ファイルはサービスの種類ごとに分割する。Dify など他のサービスを、後から別ファイルとして追加できる。 |
 | ENV-018 | 初期のテーブルは `ER_DESIGN_FILE` に従い、Alembic のマイグレーションで作成する。 |
 | ENV-019 | 認証情報 (DB のユーザー名・パスワード) とデータベース名は、環境変数ファイル `.env` のみで管理する。`.env` は Git にコミットせず、雛形の `.env.example` をコミットする。compose ファイル、ソースコード、ドキュメントにはこれらの値を書かず、環境変数 (`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) として参照する。 |
@@ -159,6 +166,12 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-036 | サンプルデータは、`ER_DESIGN_FILE` のデータベーススキーマに従って生成する。全テーブルを対象とし、外部キー・CHECK 制約・整合性ルールを満たす (詳細は [4.5](#サンプルデータ-env-027-env-036))。 |
 | ENV-037 | 環境の実装後に、データベースにサンプルデータが格納されていることまで確認する ([4.5](#45-構築後の確認-env-037))。 |
 | ENV-040 | `.env` を必須とし、DB 接続情報 (`DATABASE_URL` または `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) が不足している場合はバックエンドの起動を失敗させる。データは常に PostgreSQL に保存する。ローカル Compose では `.env` を必須ファイルとして読み込む。 |
+| ENV-041 | REST API の作成・変更は、`API_GUIDELINE_FILE` に従う。ガイドラインに反する API は作らない。 |
+| ENV-042 | JSON スキーマテーブルのスキーマを OpenAPI へ取り込む方式は、AI が開発環境を確認し、選択肢ごとのメリット・デメリットとできること・できないことを示して、ユーザーに選択させる。推測で決めない ([4.6](#46-rest-api-の仕様と実装-env-041env-045))。決定した結果は ADR として残す。 |
+| ENV-043 | `OPENAPI_FILE` には、JSON スキーマテーブルのスキーマを、スキーマを取得する URL による外部参照 (`$ref`) として記載する。 |
+| ENV-044 | OpenAPI 編集ツールで作成した `OPENAPI_FILE` と JSON スキーマテーブルのスキーマを結合したファイル (`OPENAPI_BUNDLED_FILE`) をツールで生成し、REST API の実装は結合したファイルに基づいて行う。 |
+| ENV-045 | OpenAPI 仕様を編集するツールを、Docker Compose のサービスとして開発環境に導入する ([5.2](#52-サービス))。 |
+| ENV-046 | REST API の仕様 (`OPENAPI_BUNDLED_FILE`) に合わせて、REST API と MCP ツールの処理を共通化する。REST の operation と MCP ツールは 1 対 1 に対応させ、業務処理・検証・エラー内容は共通の処理 (`services.py`) に 1 つだけ実装する ([4.6](#rest-api-と-mcp-の処理の共通化-env-046))。 |
 
 `JSON_SCHEMA_DESIGN_DIR` 以下の各 Markdown (JSON スキーマの設計ファイル) には、少なくとも次の内容を記載する。記載がなければ、ENV-035 に従いユーザーに確認する。
 
@@ -192,8 +205,11 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | PostgreSQL (VS Code 拡張機能、`ms-ossdata.vscode-pgsql`) | DB の内容確認 (VS Code 上の GUI・クエリ実行) | 拡張機能のライセンスに従う (無償) | ENV-014 を満たす。Compose のサービスではなく VS Code の拡張機能として使う。Dev Container では拡張機能の自動インストール対象に含める |
 | psycopg 3 | PostgreSQL ドライバ | LGPL-3.0 | 動的リンクで利用する |
 | jsonschema (4.x) | JSON Schema (draft 2020-12) の検証 | MIT | ENV-022・ENV-023 を満たす。バックエンドの依存に追加する。メタスキーマ検証 (`Draft202012Validator.check_schema`) にも使う |
+| Swagger Editor (`swaggerapi/swagger-editor`) | OpenAPI 仕様の編集 (ENV-045) | Apache-2.0 | ユーザーが利用を指示した OpenAPI 編集ツール。Docker Compose のサービスとして導入する。OpenAPI 3.1 (JSON Schema 2020-12) に対応する版を使う |
 | pytest | テスト | MIT | 開発用依存 |
 | ruff | Lint・フォーマット | MIT | 開発用依存 |
+
+結合ツール (ENV-044) が YAML の読み書きに PyYAML (MIT) などの 3.1・3.2 にないライブラリを必要とする場合は、追加前にユーザーの承認を得て、3.2 に追記する。
 
 3.1・3.2 以外に、Dev Container の標準構成として Python 3.13 以上と psql を使用する。フロントエンドの実行環境 (Node.js など) は本書の対象外であり、既存のものをそのまま使う (ENV-031)。
 
@@ -281,7 +297,7 @@ JSON スキーマの設計 (`JSON_SCHEMA_DESIGN_DIR` 以下の Markdown と、�
 |---|---|
 | 実行 | `BACKEND_DIR` ディレクトリへ移動して `python -m app.cli build-seed` を実行する (`cd backend && python -m app.cli build-seed`)。`app` パッケージは `BACKEND_DIR` 直下にあり、リポジトリ直下では `No module named 'app'` で失敗するため。リポジトリ直下から実行する場合は `PYTHONPATH=backend python -m app.cli build-seed` とする。`--check` を付けると、ファイルを書き込まず、`SEED_DIR` の生成ファイルが設計ファイルと一致するかだけを確認する (一致しなければ終了コード 1)。DB への接続は不要。実行には `BACKEND_DIR/pyproject.toml` の依存 (`jsonschema` など) が必要 |
 | 実行場所 | ホストまたは Dev Container の `app` コンテナ。`backend` コンテナは `BACKEND_DIR` だけをマウントし設計ファイルを参照できないため、コンテナ内では実行しない。`docker compose up` では実行されない。生成したファイルをコミットする。生成ファイルを読む `seed` は設計ファイルを必要としないため、コンテナで動作する (出力先の `SEED_DIR` は `BACKEND_DIR` からの相対位置で決めるため、コンテナ内でも同じファイルを指す) |
-| 入力 | `JSON_SCHEMA_DESIGN_DIR` の記載に従う JSON スキーマ本体と例 (本リポジトリでは `design/database/schemas/sys.artifact.schema.json` と `design/database/schemas/examples/*.json`) |
+| 入力 | `JSON_SCHEMA_DESIGN_DIR` の記載に従う JSON スキーマ本体 |
 | 出力 | `SEED_DIR/10_json_schema.json`、`SEED_DIR/20_artifact_examples.json` (形式は 4.1 のとおり) |
 
 ENV-025 (スキーマの登録先テーブル。本リポジトリでは `JSON_SCHEMA`) の変換規則:
@@ -304,7 +320,7 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 
 - 生成ファイルが設計ファイルと一致すること (`--check` 相当)、再生成しても同じ内容になること、不正なスキーマ・例を拒否すること、サンプルが `ER_DESIGN_FILE` の全テーブルを含みスキーマで検証を通ること、を `BACKEND_DIR/tests/test_seed_builder.py` で確認する。
 - 初期データの既定の出力先・投入元が `BACKEND_DIR` からの相対位置であること (コンテナの `/app` でも `seed` が見つかること) を確認する。
-- 設計ファイル (`design/` など `BACKEND_DIR` の外にあるもの) を読むテストは、それが存在しない環境 (`backend` コンテナ) ではスキップする。これらのテストは、ホストまたは Dev Container で実行する。
+- 設計ファイル ( `BACKEND_DIR` の外にあるもの) を読むテストは、それが存在しない環境 (`backend` コンテナ) ではスキップする。これらのテストは、ホストまたは Dev Container で実行する。
 - 登録済みの JSON スキーマの行と重複しないよう、スキーマ登録を試すテストは、初期データと異なる `schema_key` を使う。
 
 ### 4.5 構築後の確認 (ENV-037)
@@ -318,6 +334,8 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 5. JSON スキーマの登録先テーブルに、`JSON_SCHEMA_DESIGN_DIR` 以下の Markdown に定義したすべての JSON スキーマが格納されている。jsonb 列の値が、対応するスキーマで検証を通る。
 6. `seed` を再実行しても、重複エラーにならず行数が変わらない (主キー重複のスキップ)。
 7. REST API のヘルスチェック (`/health`) が成功し、データ取得 API でサンプルデータが JSON で返る (ENV-003)。
+8. `openapi-editor` が healthy になり、`http://localhost:<OPENAPI_EDITOR_PORT>` で編集画面を開ける (ENV-045)。`python -m app.cli build-openapi --check` が成功し、`OPENAPI_BUNDLED_FILE` が最新である (ENV-044)。
+9. 結合ファイルの全 operation に対応する MCP ツールがあり、REST と MCP の一致を確認するテストが通る (ENV-046)。
 
 確認に使う接続情報は `.env` の環境変数から参照し、確認結果の報告にも認証情報・データベース名を書かない (ENV-019)。
 
@@ -330,11 +348,95 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 - 認証情報・データベース名を含めない (ENV-019)。
 - 本リポジトリの現行の `sys.artifact` は `ARTIFACT` 用のため、サンプルの `CONTENT_RECORD` は `record_type` = `ARTIFACT` とする。`FEATURE` 用のスキーマを追加した際は、あわせてサンプルを追加する。`REVISION_PARENT` は、同一レコードの 2 つのリビジョンを `PREVIOUS` で結ぶ行とする。製品の `base_platform_version_id` は、サンプルのプラットフォームバージョンを参照する。
 
+### 4.6 REST API の仕様と実装 (ENV-041〜ENV-045)
+
+REST API は、`API_GUIDELINE_FILE` に従い、OpenAPI 仕様を先に作成してから実装する。
+
+| 項目 | 内容 |
+|---|---|
+| 編集用の仕様 | `OPENAPI_FILE`。OpenAPI 編集ツール (5.2 の `openapi-editor`) で作成・編集する。JSON スキーマテーブルのスキーマは、URL による外部参照で記載する |
+| 実装用の仕様 | `OPENAPI_BUNDLED_FILE`。結合ツールで生成する。REST API の実装 (ルーティング、リクエスト・レスポンスの検証、型) は、このファイルを基準にする |
+| 結合ツール | `cd backend && python -m app.cli build-openapi`。`OPENAPI_FILE` の外部参照 (URL) を解決し、JSON スキーマテーブルのスキーマと結合して `OPENAPI_BUNDLED_FILE` を出力する。`--check` で、生成ファイルが最新かだけを確認する (古ければ終了コード 1)。出力は、キーの並びを固定し、同じ入力から常に同じ内容にする |
+| 外部参照の URL | JSON スキーマテーブルから `schema_json` 本体を返す URL (バックエンドの REST API)。例: `http://localhost:8000/schemas/{schema_id}/schema_json`。現行の API が `schema_json` 本体を返さない場合は、`API_GUIDELINE_FILE` に従って取得用の API を追加する |
+| 解決の前提 | URL の解決にはバックエンドの起動が必要。起動していない場合、結合ツールはエラー終了する |
+
+#### スキーマ取り込み方式の選択 (ENV-042)
+
+AI は、次を確認してから選択肢を示す。
+
+- OpenAPI 編集ツールが対応する OpenAPI のバージョン (3.1 であること。3.0 は JSON Schema 2020-12 と一部が非互換で、`$id` や `$defs` などが使えない)。
+- JSON スキーマテーブルのスキーマの数、`$id` の形式 (`urn:` は URL として解決できない)、スキーマ内の `$ref` の有無。
+- 編集ツールのブラウザからバックエンドの URL へアクセスできるか (ホスト側のポート、CORS)。
+- 結合ツールを実行する環境 (ホスト・Dev Container) からバックエンドへ接続できるか。
+
+次の 3 点について、選択肢ごとに、メリット・デメリット・できること・できないことを表で示し、`ask_user` などでユーザーに選ばせる。推奨がある場合は、理由とあわせて示す。
+
+| 選択項目 | 選択肢 | メリット | デメリット | できること / できないこと |
+|---|---|---|---|---|
+| 対象スキーマ | 全スキーマ | 追加・変更したスキーマが自動で対象になる。選び漏れがない | 使わないスキーマも取り込まれ、仕様が大きくなる | できる: 全スキーマの参照。できない: 使うスキーマだけの管理 |
+| 対象スキーマ | API で使うスキーマだけ (`schema_key` を指定) | 仕様が小さく、読みやすい | 新しいスキーマを使うたびに指定を追加する | できる: 必要最小限の取り込み。できない: 未指定スキーマの自動追従 |
+| 参照 URL の形式 | 固定版 (`schema_id` または `schema_key` + `schema_version`) | 登録済みスキーマは更新されないため、結果が再現できる | 新しい版へ切り替えるには、URL の書き換えが必要 | できる: 版の固定、再現可能な結合。できない: 最新版への自動追従 |
+| 参照 URL の形式 | 最新版 (`schema_key` のみ) | 常に最新版を参照できる | 版が上がると、結合結果と実装が意図せず変わる | できる: 最新版の追従。できない: 結合結果の再現 |
+| 結合方式 | インライン展開 (参照を、スキーマ本体で置き換える) | 1 ファイルで完結し、各種ツールで扱いやすい | ファイルが大きくなり、同じスキーマが重複する | できる: 外部参照に非対応のツールでの利用。できない: スキーマ単位の再利用 |
+| 結合方式 | `components/schemas` に取り込み、仕様内の `$ref` に置き換える | 重複せず、スキーマ名で再利用できる | スキーマ名の衝突対応 (名前の付け方) が必要。スキーマ内の `$id`・`$ref` の書き換えが必要 | できる: 再利用、コード生成ツールとの連携。できない: スキーマ本体の `$id` の保持 |
+
+#### 選択結果 (ENV-042。実施済み)
+
+開発環境の確認結果 (JSON スキーマテーブルは `sys.artifact` v1 の 1 件のみ。`$id` は `urn:` で URL として解決できない。`$defs` 53 件・内部 `$ref` 210 件。既存 API は `schema_json` 本体を返さない。バックエンドは未起動で CORS 未設定) を示した上で、ユーザーは次のとおり選択した。
+
+| 選択項目 | 結果 |
+|---|---|
+| 結合方式 | `components/schemas` に取り込み。`$defs` は `<schema_key>.<名前>` に改名し、内部 `$ref` (`#/$defs/...`) は `#/components/schemas/...` へ書き換える。スキーマ本体の `$id` は保持しない |
+| 対象スキーマ | 固定しない。OpenAPI の作成・結合を行うたびに、AI が現在の JSON スキーマテーブルの内容を示し、ユーザーに選択させる |
+| 参照 URL の形式 | 固定しない。上と同様に、そのつどユーザーが選択する (固定版 `schema_key` + `schema_version`、固定版 `schema_id`、最新版 `schema_key` のみ) |
+
+- 結合ツールは、対象スキーマと参照 URL の形式を実行時に受け取れるようにし、既定値を持たない (指定がなければエラー終了する)。
+- 外部参照用の取得 API の追加、CORS の許可、結合ツールの実装は、本書の ENV-043〜ENV-045 に基づく実装作業で行う。
+- 決定結果は ADR として残す。`design/requiments/adr/` に、既存の ADR (`NNNN-<題名>.md`) の形式と連番に従って 1 件追加する。ADR には、確認した開発環境の内容、検討した選択肢 (メリット・デメリット、できること・できないこと)、ユーザーが選んだ結果とその理由、関連要件 (ENV-042〜ENV-044) を記載する。対象スキーマと参照 URL の形式をそのつどユーザーが選ぶ決定 (上の表) も、ADR に記載する。選択を変更するときは、既存の ADR を書き換えず、新しい ADR を追加して前の ADR を置き換える。
+- 選択結果は、`README_FILE` の「OpenAPI 仕様の編集手順」にも記載する。
+- 選択した方式で結合ツールを実装する。結合後の仕様は、OpenAPI 3.1 として検証し、取り込んだスキーマを JSON Schema のメタスキーマ (draft 2020-12) で検証する。
+
+#### REST API と MCP の処理の共通化 (ENV-046)
+
+REST API の仕様 (`OPENAPI_BUNDLED_FILE`) を正とし、MCP ツールは REST API の operation を MCP として公開したものとする。処理を REST と MCP で別々に実装しない。
+
+```mermaid
+flowchart LR
+    SPEC["OPENAPI_BUNDLED_FILE<br/>(REST API 仕様)"]
+    REST["REST ルーター<br/>routers/*.py"]
+    MCP["MCP ツール<br/>mcp_server.py"]
+    SVC["共通処理<br/>services.py<br/>(業務処理・JSON スキーマ検証・エラー生成)"]
+    DB[("PostgreSQL")]
+    SPEC -. "operationId・入出力・エラー" .-> REST
+    SPEC -. "operationId・入出力・エラー" .-> MCP
+    FE["フロントエンド"] -->|REST| REST
+    MC["MCP_CLIENTS"] -->|MCP| MCP
+    REST --> SVC
+    MCP --> SVC
+    SVC --> DB
+```
+
+| 項目 | 内容 |
+|---|---|
+| 対応関係 | REST の operation 1 つにつき MCP ツールを 1 つ作る。ツール名は `operationId` (`verbResource`) と同じにする。ツールの説明・入力の項目名と型・出力の形は、仕様の `summary` / `description` / `parameters` / `requestBody` / `responses` に合わせる |
+| 処理の置き場所 | 業務処理、DB 更新、JSON スキーマの検証 (ENV-022)、エラーの生成 (ENV-023) は `services.py` にだけ実装する。REST ルーターと MCP ツールは、入力の受け取りと `services.py` の呼び出し、結果・エラーの変換だけを行う薄いアダプターとする |
+| 入出力の型 | REST と MCP は同じ Pydantic モデル (`schemas.py`) を使う。モデルは `OPENAPI_BUNDLED_FILE` のスキーマと一致させる |
+| エラー | `services.py` が 1 つのエラー内容 (`API_GUIDELINE_FILE` のエラー形式: `code` / `message` / `details`) を作る。REST は対応する HTTP ステータス (400 / 404 / 409 / 422 など) で返し、MCP はツールのエラーとして同じ内容を返す |
+| 認証・認可 | `API_GUIDELINE_FILE` の認証要件は、REST と MCP の両方に同じ方法で適用する。MCP だけ認証を省略しない |
+| 変更の手順 | API の変更は、`OPENAPI_FILE` の編集 → 結合ファイルの再生成 → `services.py` の変更 → REST ルーターと MCP ツールの追従、の順に行う。仕様にない operation を、REST か MCP の一方だけに追加しない |
+| MCP 専用のツール | REST API にない処理に限り、MCP 専用のツールを認める (例: DB のバージョン確認)。REST API に同じ処理 (operation) がある場合は、MCP 専用のツールを作らず、その operation に対応するツールを使う |
+
+- 一致の確認: `BACKEND_DIR/tests` に、結合ファイルの全 operation について、同名の MCP ツールがあること、入力のスキーマが一致すること、同じ入力に対して REST と MCP が同じ結果 (正常時) と同じエラー内容 (検証エラー時) を返すこと、仕様の operation に対応しない MCP ツールが MCP 専用の一覧 (REST API にない処理) に載っているものだけであること、を確認するテストを置く。
+- FastMCP の `from_openapi` / `from_fastapi` で REST を HTTP 経由で呼ぶ方式は採用しない (自分自身への HTTP 呼び出しになり、認証・エラー変換が二重になるため)。`services.py` を直接呼ぶ。
+
 ## 5. Docker Compose 構成
 
 ### 5.1 ファイル構成 (ENV-016, ENV-017, ENV-019, ENV-020, ENV-031)
 
 ```text
+OPENAPI_DIR/
+  openapi.yaml          # OpenAPI 仕様 (編集用)。OPENAPI_FILE
+  openapi.bundled.yaml  # 結合した仕様 (生成)。OPENAPI_BUNDLED_FILE
 .env                    # 認証情報・データベース名 (Git にコミットしない)
 .env.example            # .env の雛形 (コミットする)
 .vscode/
@@ -344,6 +446,7 @@ COMPOSE_DIR/
   db.yaml               # PostgreSQL
   backend.yaml          # backend-init (マイグレーション + 初期データ投入)、backend
   web.yaml              # フロントエンド。既存の COMPOSE_ENTRY の内容を反映し、バックエンドとの連携設定を含む (ENV-039)
+  openapi-editor.yaml   # OpenAPI 編集ツール (Swagger Editor。ENV-045)
   dify.yaml             # (追加予定) Dify
 .devcontainer/
   devcontainer.json
@@ -365,8 +468,13 @@ COMPOSE_DIR/
 | `db` | `DB_ENGINE` | `DB_PORT` の既定値 | `DB_PORT` |
 | `backend-init` | マイグレーション適用と初期データ投入。完了すると終了する | なし | なし |
 | `backend` | REST API (`/`)、MCP (`/mcp/`)。ヘルスチェック: `/health` | `BACKEND_PORT` の既定値 | `BACKEND_PORT` |
+| `openapi-editor` | OpenAPI 編集ツール (Swagger Editor。ENV-045)。`OPENAPI_DIR` を `/openapi` に読み取り専用でマウントし、編集の開始時に `OPENAPI_FILE` を読み込めるようにする。ヘルスチェックを設定する | `OPENAPI_EDITOR_PORT` の既定値 (コンテナ内 8080) | `OPENAPI_EDITOR_PORT` |
 
 起動順序: `db` (healthy) → `backend-init` (正常終了) → `backend` (healthy)
+
+`openapi-editor` は `db`・`backend` に依存せず、単独で起動する。公開ポートは `127.0.0.1` のみとし (`127.0.0.1:${OPENAPI_EDITOR_PORT:-8081}:8080`)、認証情報を持たせない (ENV-019)。
+
+Swagger Editor はブラウザ上で編集するため、編集結果はエディタからエクスポート (YAML) して `OPENAPI_FILE` へ保存する。この手順を `README_FILE` に記載する。ファイルとの自動同期が必要な場合は、別のツールをユーザーに確認する。
 
 フロントエンドのサービス (`web`) がある場合は、`backend` (healthy) の後に起動する。`web.yaml` の `depends_on` で定義する (ENV-039)。
 
@@ -410,6 +518,7 @@ COMPOSE_DIR/
 | 2 | GitHub Copilot での MCP 設定手順 (1 の環境構築手順の直後に記載する) |
 | 3 | 初期投入データの編集手順 (生成ツールの使い方を含む。ENV-028) |
 | 4 | DB の内容確認手順 (VS Code の PostgreSQL 拡張機能の手順を含む。ENV-014。[4.5 構築後の確認](#45-構築後の確認-env-037) の手順も含む) |
-| 5 | REST API / MCP ツールの構築手順 |
+| 5 | REST API / MCP ツールの構築手順 (REST と MCP の処理の共通化 (ENV-046) の手順を含む) |
 | 6 | スキーマ変更手順 |
 | 7 | JSON スキーマの編集手順 (ENV-024) |
+| 8 | OpenAPI 仕様の編集手順 (編集ツールの起動と保存手順、外部参照 URL の書き方、結合ツールの使い方、4.6 で選んだ取り込み方式。ENV-043〜ENV-045) |
