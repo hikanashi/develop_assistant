@@ -24,18 +24,18 @@ mcp = FastMCP("develop-assistant")
 
 
 def _run(action: Callable[[Session], Any]) -> Any:
-    """サービス層を呼び、エラーは構造化した JSON をメッセージとする ToolError にする。
-
-    検証エラーの JSON には errors と、スキーマの再取得方法 (refetch) が含まれる。
+    """サービス層を呼び、エラーは REST と同じ形式 (code / message / details) の JSON を
+    メッセージとする ToolError にする。検証エラーの details には errors と、
+    スキーマの再取得方法 (refetch) が含まれる。
     """
     try:
         with session_scope() as session:
             result = action(session)
-    except (services.SchemaValidationError, services.ServiceError) as e:
+    except services.ServiceError as e:
         raise ToolError(json.dumps(e.payload(), ensure_ascii=False)) from None
     except ValidationError as e:
-        payload = {"error": "invalid_input", "message": str(e)}
-        raise ToolError(json.dumps(payload, ensure_ascii=False)) from None
+        error = services.invalid_request(e.errors())
+        raise ToolError(json.dumps(error.payload(), ensure_ascii=False)) from None
     return json.loads(json.dumps(result, default=_encode))
 
 
@@ -45,125 +45,147 @@ def _encode(value: Any) -> Any:
     raise TypeError(type(value))
 
 
+# MCP ツールは REST API の operation に 1 対 1 で対応する薄いアダプターで、ツール名は operationId、
+# 引数名は REST と同じ camelCase とする。処理は services.py にだけ実装する (ENV-046)。
+# REST API にない処理だけ、MCP 専用のツールとしてよい (MCP_ONLY_TOOLS)。
+MCP_ONLY_TOOLS = frozenset({"db_version"})
+
+
 @mcp.tool
 def db_version() -> str:
-    """接続中のPostgreSQLのバージョンを返す。"""
+    """接続中のPostgreSQLのバージョンを返す。(MCP 専用)"""
     with engine.connect() as conn:
         return conn.execute(text("select version()")).scalar_one()
 
 
-@mcp.tool
-def list_json_schemas(schema_key: str | None = None, record_type: RecordType | None = None):
-    """登録済みの JSON Schema (schema_json を除く) を一覧する。"""
-    return _run(lambda s: services.list_schemas(s, schema_key, record_type))
+@mcp.tool(name="listSchemas")
+def list_schemas(schemaKey: str | None = None, recordType: RecordType | None = None):
+    """登録済みの JSON Schema (schemaJson を除く) を一覧する。"""
+    return _run(lambda s: services.list_schemas(s, schemaKey, recordType))
 
 
-@mcp.tool
-def get_json_schema(
-    schema_id: uuid.UUID | None = None,
-    schema_key: str | None = None,
-    schema_version: int | None = None,
-):
-    """JSON Schema を取得する。schema_id か schema_key のどちらかを指定する。
+@mcp.tool(name="getSchema")
+def get_schema(schemaId: uuid.UUID):
+    """schemaId で JSON Schema を取得する。
 
-    schema_key だけを指定すると最新版を返す。content_json の検証エラーが出たときは、
-    このツールでスキーマを再取得し、errors の path の箇所を修正して再送する。
+    contentJson の検証エラーが出たときは、このツールでスキーマを再取得し、
+    errors の path の箇所を修正して再送する。
     """
+    return _run(lambda s: services.get_schema(s, SchemaRef(schema_id=schemaId)))
+
+
+@mcp.tool(name="getSchemaByKey")
+def get_schema_by_key(schemaKey: str, version: int | None = None):
+    """schemaKey で JSON Schema を取得する。version を省略すると最新版を返す。"""
     return _run(
-        lambda s: services.get_schema(
-            s, SchemaRef(schema_id=schema_id, schema_key=schema_key, schema_version=schema_version)
+        lambda s: services.get_schema(s, SchemaRef(schema_key=schemaKey, schema_version=version))
+    )
+
+
+@mcp.tool(name="getSchemaJson")
+def get_schema_json(schemaId: uuid.UUID):
+    """schemaId の JSON Schema 本体 (schemaJson) だけを返す。"""
+    return _run(lambda s: services.get_schema_json(s, SchemaRef(schema_id=schemaId)))
+
+
+@mcp.tool(name="getSchemaJsonByKey")
+def get_schema_json_by_key(schemaKey: str, version: int | None = None):
+    """schemaKey の JSON Schema 本体 (schemaJson) だけを返す。version を省略すると最新版。"""
+    return _run(
+        lambda s: services.get_schema_json(
+            s, SchemaRef(schema_key=schemaKey, schema_version=version)
         )
     )
 
 
-@mcp.tool
-def register_json_schema(
-    schema_key: str,
-    schema_version: int,
-    record_type: RecordType,
-    schema_json: dict[str, Any],
-    feature_domain: FeatureDomain | None = None,
+@mcp.tool(name="createSchema")
+def create_schema(
+    schemaKey: str,
+    schemaVersion: int,
+    recordType: RecordType,
+    schemaJson: dict[str, Any],
+    featureDomain: FeatureDomain | None = None,
 ):
     """新しい JSON Schema (版) を登録する。登録済みのスキーマは更新できないため、
-    変更するときは同じ schema_key で schema_version を増やして登録する。
+    変更するときは同じ schemaKey で schemaVersion を増やして登録する。
     """
     return _run(
         lambda s: services.register_schema(
             s,
             JsonSchemaIn(
-                schema_key=schema_key,
-                schema_version=schema_version,
-                record_type=record_type,
-                feature_domain=feature_domain,
-                schema_body=schema_json,
+                schema_key=schemaKey,
+                schema_version=schemaVersion,
+                record_type=recordType,
+                feature_domain=featureDomain,
+                schema_body=schemaJson,
             ),
         )
     )
 
 
-@mcp.tool
+@mcp.tool(name="createRecord")
 def create_record(
-    record_type: RecordType,
-    logical_key: str,
-    content_json: dict[str, Any],
-    schema_id: uuid.UUID | None = None,
-    schema_key: str | None = None,
-    schema_version: int | None = None,
-    feature_domain: FeatureDomain | None = None,
-    origin_platform_id: uuid.UUID | None = None,
-    origin_product_id: uuid.UUID | None = None,
-    change_reason: str | None = None,
+    recordType: RecordType,
+    logicalKey: str,
+    contentJson: dict[str, Any],
+    schemaId: uuid.UUID | None = None,
+    schemaKey: str | None = None,
+    schemaVersion: int | None = None,
+    featureDomain: FeatureDomain | None = None,
+    originPlatformId: uuid.UUID | None = None,
+    originProductId: uuid.UUID | None = None,
+    changeReason: str | None = None,
 ):
     """レコードと最初のリビジョンを作成する。
 
-    content_json は指定したスキーマ (schema_id、または schema_key の最新版) で検証され、
+    contentJson は指定したスキーマ (schemaId、または schemaKey の最新版) で検証され、
     適合しない場合は何も保存されずエラーの詳細が返る。
     """
     return _run(
         lambda s: services.create_record(
             s,
             RecordIn(
-                record_type=record_type,
-                logical_key=logical_key,
-                content_json=content_json,
-                schema_id=schema_id,
-                schema_key=schema_key,
-                schema_version=schema_version,
-                feature_domain=feature_domain,
-                origin_platform_id=origin_platform_id,
-                origin_product_id=origin_product_id,
-                change_reason=change_reason,
+                record_type=recordType,
+                logical_key=logicalKey,
+                content_json=contentJson,
+                schema_id=schemaId,
+                schema_key=schemaKey,
+                schema_version=schemaVersion,
+                feature_domain=featureDomain,
+                origin_platform_id=originPlatformId,
+                origin_product_id=originProductId,
+                change_reason=changeReason,
             ),
         )
     )
 
 
-@mcp.tool
-def add_revision(
-    record_id: uuid.UUID,
-    content_json: dict[str, Any],
-    schema_id: uuid.UUID | None = None,
-    schema_key: str | None = None,
-    schema_version: int | None = None,
-    change_reason: str | None = None,
+@mcp.tool(name="createRevision")
+def create_revision(
+    recordId: uuid.UUID,
+    contentJson: dict[str, Any],
+    schemaId: uuid.UUID | None = None,
+    schemaKey: str | None = None,
+    schemaVersion: int | None = None,
+    changeReason: str | None = None,
 ):
-    """既存レコードに新しいリビジョンを追加する。検証の扱いは create_record と同じ。"""
+    """既存レコードに新しいリビジョンを追加する。検証の扱いは createRecord と同じ。"""
     return _run(
         lambda s: services.add_revision(
             s,
-            record_id,
+            recordId,
             RevisionIn(
-                content_json=content_json,
-                schema_id=schema_id,
-                schema_key=schema_key,
-                schema_version=schema_version,
-                change_reason=change_reason,
+                content_json=contentJson,
+                schema_id=schemaId,
+                schema_key=schemaKey,
+                schema_version=schemaVersion,
+                change_reason=changeReason,
             ),
         )
     )
 
 
-@mcp.tool
-def get_record(record_id: uuid.UUID):
+@mcp.tool(name="getRecord")
+def get_record(recordId: uuid.UUID):
     """レコードと全リビジョンを取得する。"""
-    return _run(lambda s: services.get_record(s, record_id))
+    return _run(lambda s: services.get_record(s, recordId))

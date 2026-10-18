@@ -28,7 +28,7 @@ def test_all_violations_are_reported_with_json_pointer():
     assert ("required", "") in by_validator
     assert ("type", "/tags/1") in by_validator
     assert ("type", "/a~1b") in by_validator
-    assert all(e["message"] and "schema_path" in e for e in errors)
+    assert all(e["message"] and "schemaPath" in e for e in errors)
 
 
 def test_any_of_reports_causes():

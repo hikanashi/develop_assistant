@@ -4,6 +4,8 @@ from pathlib import Path
 from sqlalchemy.engine import URL
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+# コンテナでは backend/ だけが /app にマウントされるため、openapi/ は /openapi にマウントする
+OPENAPI_FILE = Path(os.environ.get("OPENAPI_FILE", BACKEND_DIR.parent / "openapi" / "openapi.yaml"))
 DEFAULT_SEED_DIR = BACKEND_DIR / "seed"
 
 

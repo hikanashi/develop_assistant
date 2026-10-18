@@ -26,7 +26,7 @@ def _sort_key(error: ValidationError) -> tuple[list[str], list[str]]:
 def _describe(error: ValidationError, depth: int = 0) -> dict[str, Any]:
     item: dict[str, Any] = {
         "path": _pointer(error.absolute_path),
-        "schema_path": _pointer(error.absolute_schema_path),
+        "schemaPath": _pointer(error.absolute_schema_path),
         "validator": error.validator,
         "message": error.message[:_MAX_MESSAGE_LENGTH],
     }
@@ -47,7 +47,7 @@ def validate_instance(schema: dict[str, Any], instance: Any) -> list[dict[str, A
 
 def custom_error(path: str, validator: str, message: str) -> dict[str, Any]:
     """jsonschema 以外の検証で、同じ形式のエラーを作る。"""
-    return {"path": path, "schema_path": "", "validator": validator, "message": message}
+    return {"path": path, "schemaPath": "", "validator": validator, "message": message}
 
 
 def check_schema_document(schema: Any) -> list[dict[str, Any]]:

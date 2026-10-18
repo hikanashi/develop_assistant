@@ -1,0 +1,464 @@
+openapi: 3.1.0
+info:
+  title: develop_assistant backend API
+  version: 1.0.0
+  description: |
+    REST API の仕様 (SSOT)。design/requiments/api-guideline.md に従う。
+    JSON スキーマテーブルのスキーマは、ホストを書かない外部参照 ($ref: /v1/schemas/...) で参照する。
+    参照は、この仕様を配信しているホスト (バックエンドの /openapi.yaml) を基準に解決されるため、
+    ローカルと本番で書き換えない。/docs (Swagger UI) で確認できる。
+
+    認証 (Authorization: Bearer) は全 operation で必須とする仕様だが、ローカル開発では
+    実装していない (ADR-0014)。MCP ツールは operationId と同名で、同じ処理を呼ぶ。
+servers:
+  - url: /
+    description: この仕様を配信しているホスト (バックエンド)
+security:
+  - bearerAuth: []
+tags:
+  - name: json-schema
+    description: JSON スキーマテーブルのスキーマ
+  - name: record
+    description: レコードとリビジョン
+paths:
+  /v1/schemas:
+    get:
+      tags: [json-schema]
+      operationId: listSchemas
+      summary: 登録済みの JSON スキーマを一覧する (schemaJson を除く)
+      parameters:
+        - name: schemaKey
+          in: query
+          schema: { type: string }
+        - name: recordType
+          in: query
+          schema: { $ref: '#/components/schemas/RecordType' }
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/JsonSchemaSummary' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    post:
+      tags: [json-schema]
+      operationId: createSchema
+      summary: 新しい JSON スキーマ (版) を登録する
+      description: 登録済みのスキーマは更新できない。変更するときは同じ schemaKey で schemaVersion を増やして登録する。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JsonSchemaCreate' }
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JsonSchema' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/schemas/by-key/{schemaKey}:
+    get:
+      tags: [json-schema]
+      operationId: getSchemaByKey
+      summary: schemaKey で JSON スキーマを取得する
+      parameters:
+        - { $ref: '#/components/parameters/SchemaKey' }
+        - { $ref: '#/components/parameters/Version' }
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JsonSchema' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/schemas/by-key/{schemaKey}/schema-json:
+    get:
+      tags: [json-schema]
+      operationId: getSchemaJsonByKey
+      summary: schemaKey の JSON スキーマ本体 (schemaJson) だけを取得する
+      description: |
+        この仕様の外部参照 ($ref) に使う。version を省略すると最新版。
+        外部参照として解決できるよう、スキーマ本体から $id (urn:) を除いて返す。
+      parameters:
+        - { $ref: '#/components/parameters/SchemaKey' }
+        - { $ref: '#/components/parameters/Version' }
+      responses:
+        '200':
+          description: 取得成功 (JSON Schema draft 2020-12)
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/schemas/{schemaId}:
+    get:
+      tags: [json-schema]
+      operationId: getSchema
+      summary: schemaId で JSON スキーマを取得する
+      parameters:
+        - { $ref: '#/components/parameters/SchemaId' }
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JsonSchema' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/schemas/{schemaId}/schema-json:
+    get:
+      tags: [json-schema]
+      operationId: getSchemaJson
+      summary: schemaId の JSON スキーマ本体 (schemaJson) だけを取得する
+      description: |
+        特定の版を固定して外部参照 ($ref) するときに使う。
+        外部参照として解決できるよう、スキーマ本体から $id (urn:) を除いて返す。
+      parameters:
+        - { $ref: '#/components/parameters/SchemaId' }
+      responses:
+        '200':
+          description: 取得成功 (JSON Schema draft 2020-12)
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/records:
+    post:
+      tags: [record]
+      operationId: createRecord
+      summary: レコードと最初のリビジョンを作成する
+      description: |
+        contentJson は、指定したスキーマ (schemaId、または schemaKey の最新版) で検証される。
+        適合しない場合は何も保存せず、422 で違反の詳細とスキーマの再取得方法を返す。
+        recordType=ARTIFACT の contentJson は ArtifactContent (sys.artifact) に従う。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecordCreate' }
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecordWithRevisions' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/records/{recordId}:
+    get:
+      tags: [record]
+      operationId: getRecord
+      summary: レコードと全リビジョンを取得する
+      parameters:
+        - { $ref: '#/components/parameters/RecordId' }
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecordWithRevisions' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /v1/records/{recordId}/revisions:
+    post:
+      tags: [record]
+      operationId: createRevision
+      summary: 既存レコードに新しいリビジョンを追加する
+      description: 検証の扱いは createRecord と同じ。既存のリビジョンは更新できない。
+      parameters:
+        - { $ref: '#/components/parameters/RecordId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RevisionCreate' }
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Revision' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    SchemaId:
+      name: schemaId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    SchemaKey:
+      name: schemaKey
+      in: path
+      required: true
+      schema: { type: string }
+    Version:
+      name: version
+      in: query
+      description: スキーマの版。省略すると最新版。
+      schema: { type: integer, minimum: 1 }
+    RecordId:
+      name: recordId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    BadRequest:
+      description: 400 入力項目の指定エラー (必須項目が未指定など)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: 401 未認証
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: 403 権限なし
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: 404 リソースなし
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: 409 競合 (制約違反、スキーマと recordType の不一致など)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UnprocessableEntity:
+      description: 422 入力ソースのバリデーションエラー (JSON スキーマに適合しない)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/JsonSchemaValidationError' }
+    InternalServerError:
+      description: 500 サーバー内部エラー
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [code, message, details]
+      properties:
+        code:
+          type: string
+          description: 機械可読な固定コード
+          examples: [RECORD_NOT_FOUND]
+        message:
+          type: string
+          description: 人間向けメッセージ
+        details:
+          type: [object, 'null']
+          description: エラー発生個所などの詳細。要求側がエラー要因を特定するための情報
+    JsonSchemaValidationError:
+      description: 422 のエラー。details に違反の詳細とスキーマの再取得方法を含む。
+      allOf:
+        - { $ref: '#/components/schemas/Error' }
+        - type: object
+          properties:
+            code: { const: JSON_SCHEMA_VALIDATION_FAILED }
+            details:
+              type: object
+              required: [target, errors]
+              properties:
+                target:
+                  type: string
+                  enum: [contentJson, schemaJson]
+                schema:
+                  type: object
+                  properties:
+                    schemaId: { type: string, format: uuid }
+                    schemaKey: { type: string }
+                    schemaVersion: { type: integer }
+                    latestSchemaVersion: { type: integer }
+                refetch:
+                  type: object
+                  description: スキーマを再取得する手段 (REST / MCP)
+                  properties:
+                    rest: { type: string, examples: ['GET /v1/schemas/{schemaId}'] }
+                    mcpTool: { type: string, examples: [getSchema] }
+                    arguments: { type: object }
+                hint: { type: string }
+                errors:
+                  type: array
+                  items: { $ref: '#/components/schemas/SchemaViolation' }
+    SchemaViolation:
+      type: object
+      required: [path, schemaPath, validator, message]
+      properties:
+        path:
+          type: string
+          description: 違反箇所の JSON Pointer
+        schemaPath: { type: string }
+        validator:
+          type: string
+          description: 違反した制約
+        message: { type: string }
+        causes:
+          type: array
+          items: { $ref: '#/components/schemas/SchemaViolation' }
+    RecordType:
+      type: string
+      enum: [FEATURE, ARTIFACT]
+    FeatureDomain:
+      type: string
+      enum: [HARDWARE, BASIC_SOFTWARE, APPLICATION]
+    JsonSchemaSummary:
+      type: object
+      required: [schemaId, schemaKey, schemaVersion, recordType, featureDomain, createdAt]
+      properties:
+        schemaId: { type: string, format: uuid }
+        schemaKey: { type: string }
+        schemaVersion: { type: integer, minimum: 1 }
+        recordType: { $ref: '#/components/schemas/RecordType' }
+        featureDomain:
+          oneOf:
+            - { $ref: '#/components/schemas/FeatureDomain' }
+            - { type: 'null' }
+        createdAt: { type: string, format: date-time }
+    JsonSchema:
+      allOf:
+        - { $ref: '#/components/schemas/JsonSchemaSummary' }
+        - type: object
+          required: [schemaJson]
+          properties:
+            schemaJson:
+              type: object
+              description: JSON Schema (draft 2020-12)
+    JsonSchemaCreate:
+      type: object
+      required: [schemaKey, schemaVersion, recordType, schemaJson]
+      properties:
+        schemaKey: { type: string, minLength: 1 }
+        schemaVersion: { type: integer, minimum: 1 }
+        recordType: { $ref: '#/components/schemas/RecordType' }
+        featureDomain:
+          oneOf:
+            - { $ref: '#/components/schemas/FeatureDomain' }
+            - { type: 'null' }
+        schemaJson:
+          type: object
+          description: JSON Schema (draft 2020-12)。$id を書く場合は urn:das:schema:<schemaKey>:<schemaVersion>
+    SchemaSelector:
+      type: object
+      description: |
+        検証に使うスキーマの指定。schemaId か schemaKey のどちらか一方を指定する。
+        schemaKey だけを指定すると最新版を使う。schemaId と schemaVersion は同時に指定できない。
+      properties:
+        schemaId: { type: [string, 'null'], format: uuid }
+        schemaKey: { type: [string, 'null'] }
+        schemaVersion: { type: [integer, 'null'], minimum: 1 }
+    RevisionCreate:
+      allOf:
+        - { $ref: '#/components/schemas/SchemaSelector' }
+        - type: object
+          required: [contentJson]
+          properties:
+            contentJson:
+              type: object
+              description: 指定したスキーマで検証される値
+            changeReason: { type: [string, 'null'] }
+    RecordCreate:
+      allOf:
+        - { $ref: '#/components/schemas/RevisionCreate' }
+        - type: object
+          required: [recordType, logicalKey]
+          properties:
+            recordType: { $ref: '#/components/schemas/RecordType' }
+            featureDomain:
+              oneOf:
+                - { $ref: '#/components/schemas/FeatureDomain' }
+                - { type: 'null' }
+              description: recordType が FEATURE のときだけ指定する
+            originPlatformId: { type: [string, 'null'], format: uuid }
+            originProductId: { type: [string, 'null'], format: uuid }
+            logicalKey: { type: string, minLength: 1 }
+    Revision:
+      type: object
+      required: [revisionId, recordId, schemaId, revisionNo, contentJson, changeReason, createdAt]
+      properties:
+        revisionId: { type: string, format: uuid }
+        recordId: { type: string, format: uuid }
+        schemaId: { type: string, format: uuid }
+        revisionNo: { type: integer, minimum: 1 }
+        contentJson: { type: object }
+        changeReason: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+    Record:
+      type: object
+      required:
+        - recordId
+        - originPlatformId
+        - originProductId
+        - recordType
+        - featureDomain
+        - logicalKey
+        - createdAt
+      properties:
+        recordId: { type: string, format: uuid }
+        originPlatformId: { type: [string, 'null'], format: uuid }
+        originProductId: { type: [string, 'null'], format: uuid }
+        recordType: { $ref: '#/components/schemas/RecordType' }
+        featureDomain:
+          oneOf:
+            - { $ref: '#/components/schemas/FeatureDomain' }
+            - { type: 'null' }
+        logicalKey: { type: string }
+        createdAt: { type: string, format: date-time }
+    RecordWithRevisions:
+      allOf:
+        - { $ref: '#/components/schemas/Record' }
+        - type: object
+          required: [revisions]
+          properties:
+            revisions:
+              type: array
+              items: { $ref: '#/components/schemas/Revision' }
+    ArtifactContent:
+      description: recordType=ARTIFACT・schemaKey=sys.artifact の contentJson。JSON スキーマテーブルから外部参照で取得する (ホストと版は書かない)。
+      $ref: /v1/schemas/by-key/sys.artifact/schema-json

@@ -17,7 +17,7 @@
 | `COMPOSE_DIR` | `compose` | サービスの種類ごとに分割した Compose ファイルの配置先 |
 | `COMPOSE_PROJECT` | `inteligent_database` | Compose のプロジェクト名 (既存環境と重ならない名前にする) |
 | `BACKEND_IMAGE` | `idb-backend:dev` | バックエンドのイメージ名 |
-| `DB_PORT` / `BACKEND_PORT` / `OPENAPI_EDITOR_PORT` | 5432 / 8000 / 8081 | ホスト側の公開ポートの既定値 |
+| `DB_PORT` / `BACKEND_PORT` | 5432 / 8000 | ホスト側の公開ポートの既定値 |
 
 ### 0.2 固定値 (変更しない)
 
@@ -33,7 +33,7 @@
 | `BACKEND_STACK` | FastAPI (REST API) と FastMCP (MCP サーバー) | バックエンドの実装方式。ライブラリは [3.1](#31-バックエンド) |
 | `MCP_CLIENTS` | Dify、GitHub Copilot、Claude Code | MCP でバックエンドに接続する利用者 |
 | `OPENAPI_DIR` | `openapi` | OpenAPI 仕様を置くディレクトリ |
-| `OPENAPI_FILE` | `openapi/openapi.yaml` | OpenAPI 3.1 の仕様 (編集用)。OpenAPI 編集ツールで作成・編集する。JSON スキーマテーブルのスキーマは外部参照 (URL。ホストと版は書かない) で記載する (ENV-043・ENV-047)。REST API の実装はこの仕様に基づく |
+| `OPENAPI_FILE` | `openapi/openapi.yaml` | OpenAPI 3.1 の仕様。直接編集する。JSON スキーマテーブルのスキーマは外部参照 (URL。ホストと版は書かない) で記載する (ENV-043・ENV-047)。バックエンドが配信し、`/docs` で表示する (ENV-048)。REST API の実装はこの仕様に基づく |
 
 - Python は 3.13 以上を使う。バージョンは設定項目ではない。開発環境に入っている Python が 3.13 未満の場合は、AI が対応方法 (Python のインストール・更新、コンテナ内の Python を使うなど) をユーザーに確認してから進める (ENV-038)。
 
@@ -146,7 +146,7 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-013 | ローカルの PostgreSQL の初期データは、JSON 形式のファイルで定義できる。 |
 | ENV-014 | データベースの内容を、VS Code の PostgreSQL 拡張機能で簡単に確認できる。Adminer など、確認専用のサービスは Compose に含めない。 |
 | ENV-015 | データベースの内容を、初期投入データとして使える JSON 形式でエクスポートできる。 |
-| ENV-016 | リポジトリのルートで `docker compose up` を実行すると、バックエンドとデータベースがすべて起動し、初期データが投入される。既存のフロントエンドのサービスがある場合は、それも従来どおり起動する (ENV-031)。OpenAPI 編集ツール (ENV-045) も起動する。 |
+| ENV-016 | リポジトリのルートで `docker compose up` を実行すると、バックエンドとデータベースがすべて起動し、初期データが投入される。既存のフロントエンドのサービスがある場合は、それも従来どおり起動する (ENV-031)。 |
 | ENV-017 | Compose ファイルはサービスの種類ごとに分割する。Dify など他のサービスを、後から別ファイルとして追加できる。 |
 | ENV-018 | 初期のテーブルは `ER_DESIGN_FILE` に従い、Alembic のマイグレーションで作成する。 |
 | ENV-019 | 認証情報 (DB のユーザー名・パスワード) とデータベース名は、環境変数ファイル `.env` のみで管理する。`.env` は Git にコミットせず、雛形の `.env.example` をコミットする。compose ファイル、ソースコード、ドキュメントにはこれらの値を書かず、環境変数 (`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) として参照する。 |
@@ -167,9 +167,9 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | ENV-041 | REST API の作成・変更は、`API_GUIDELINE_FILE` に従う。ガイドラインに反する API は作らない。 |
 | ENV-042 | JSON スキーマテーブルのスキーマを、REST API で取得できるようにする ([4.6](#スキーマ取得-api-env-042))。 |
 | ENV-043 | `OPENAPI_FILE` には、JSON スキーマテーブルのスキーマを、スキーマを取得する URL による外部参照 (`$ref`) として記載する。URL にはホストを書かず (パスだけ)、`version` も指定しない (最新版)。 |
-| ENV-045 | OpenAPI 仕様を編集するツールを、Docker Compose のサービスとして開発環境に導入する ([5.2](#52-サービス))。 |
 | ENV-046 | REST API の仕様 (`OPENAPI_FILE`) に合わせて、REST API と MCP ツールの処理を共通化する。REST の operation と MCP ツールは 1 対 1 に対応させ、業務処理・検証・エラー内容は共通の処理 (`services.py`) に 1 つだけ実装する ([4.6](#rest-api-と-mcp-の処理の共通化-env-046))。 |
-| ENV-047 | `OPENAPI_FILE` の外部参照は、仕様を読み込んだホストを基準に解決される。ローカルと本番の切り替えは、`OPENAPI_FILE` を書き換えず、仕様を配信するホストで行う ([4.6](#外部参照の環境の切り替え-env-047))。 |
+| ENV-047 | `OPENAPI_FILE` の外部参照は、仕様を配信するホストを基準に解決される。ローカルと本番の切り替えは、`OPENAPI_FILE` を書き換えず、仕様を配信するバックエンドのホストで行う ([4.6](#外部参照の環境の切り替え-env-047))。 |
+| ENV-048 | バックエンドは `OPENAPI_FILE` を `/openapi.yaml` で配信し、`/docs` (Swagger UI) で表示する。仕様内の外部参照は、`/docs` 上で解決して確認できる ([4.6](#仕様の配信と確認-env-048))。 |
 
 `JSON_SCHEMA_DESIGN_DIR` 以下の各 Markdown (JSON スキーマの設計ファイル) には、少なくとも次の内容を記載する。記載がなければ、ENV-035 に従いユーザーに確認する。
 
@@ -203,7 +203,6 @@ ENV-002〜006 の構成を、AWS を使わずにローカルで再現する。
 | PostgreSQL (VS Code 拡張機能、`ms-ossdata.vscode-pgsql`) | DB の内容確認 (VS Code 上の GUI・クエリ実行) | 拡張機能のライセンスに従う (無償) | ENV-014 を満たす。Compose のサービスではなく VS Code の拡張機能として使う。Dev Container では拡張機能の自動インストール対象に含める |
 | psycopg 3 | PostgreSQL ドライバ | LGPL-3.0 | 動的リンクで利用する |
 | jsonschema (4.x) | JSON Schema (draft 2020-12) の検証 | MIT | ENV-022・ENV-023 を満たす。バックエンドの依存に追加する。メタスキーマ検証 (`Draft202012Validator.check_schema`) にも使う |
-| Swagger Editor (`swaggerapi/swagger-editor`) | OpenAPI 仕様の編集 (ENV-045) | Apache-2.0 | ユーザーが利用を指示した OpenAPI 編集ツール。Docker Compose のサービスとして導入する。OpenAPI 3.1 (JSON Schema 2020-12) に対応する版を使う |
 | pytest | テスト | MIT | 開発用依存 |
 | ruff | Lint・フォーマット | MIT | 開発用依存 |
 
@@ -337,7 +336,7 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 5. JSON スキーマの登録先テーブルに、`JSON_SCHEMA_DESIGN_DIR` 以下の Markdown に定義したすべての JSON スキーマが格納されている。jsonb 列の値が、対応するスキーマで検証を通る。
 6. `seed` を再実行しても、重複エラーにならず行数が変わらない (主キー重複のスキップ)。
 7. REST API のヘルスチェック (`/health`) が成功し、データ取得 API でサンプルデータが JSON で返る (ENV-003)。
-8. `openapi-editor` が healthy になり、`http://localhost:<OPENAPI_EDITOR_PORT>` で編集画面を開け、`OPENAPI_FILE` を読み込んで、外部参照 (ホストなしのパス) のスキーマを、同じオリジンの `/v1/` 経由で解決できる (ENV-043・ENV-045・ENV-047)。
+8. `/openapi.yaml` が `OPENAPI_FILE` の内容を返し、`/docs` (Swagger UI) で、外部参照 (ホストなしのパス) のスキーマが解決されて表示される (ENV-043・ENV-047・ENV-048)。
 9. `OPENAPI_FILE` の全 operation に対応する MCP ツールがあり、REST と MCP の一致を確認するテストが通る (ENV-046)。
 
 確認に使う接続情報は `.env` の環境変数から参照し、確認結果の報告にも認証情報・データベース名を書かない (ENV-019)。
@@ -351,15 +350,15 @@ ENV-026 (成果物の例。本リポジトリでは `CONTENT_RECORD` / `CONTENT_
 - 認証情報・データベース名を含めない (ENV-019)。
 - 本リポジトリの現行の `sys.artifact` は `ARTIFACT` 用のため、サンプルの `CONTENT_RECORD` は `record_type` = `ARTIFACT` とする。`FEATURE` 用のスキーマを追加した際は、あわせてサンプルを追加する。`REVISION_PARENT` は、同一レコードの 2 つのリビジョンを `PREVIOUS` で結ぶ行とする。製品の `base_platform_version_id` は、サンプルのプラットフォームバージョンを参照する。
 
-### 4.6 REST API の仕様と実装 (ENV-041〜ENV-043, ENV-045〜ENV-047)
+### 4.6 REST API の仕様と実装 (ENV-041〜ENV-043, ENV-046〜ENV-048)
 
 REST API は、`API_GUIDELINE_FILE` に従い、OpenAPI 仕様を先に作成してから実装する。
 
 | 項目 | 内容 |
 |---|---|
-| 仕様 | `OPENAPI_FILE`。OpenAPI 編集ツール (5.2 の `openapi-editor`) で作成・編集する。JSON スキーマテーブルのスキーマは、URL による外部参照 (`$ref`) で記載する (ENV-043)。REST API の実装 (ルーティング、リクエスト・レスポンスの検証、型) は、このファイルを基準にする |
+| 仕様 | `OPENAPI_FILE`。直接編集する (専用の編集ツールは設けない)。JSON スキーマテーブルのスキーマは、URL による外部参照 (`$ref`) で記載する (ENV-043)。REST API の実装 (ルーティング、リクエスト・レスポンスの検証、型) は、このファイルを基準にする |
 | 外部参照の URL | ENV-042 の「スキーマ本体だけの取得」の API を、**ホストなしの絶対パス**で書く。版は指定せず、最新版を参照する。例: `$ref: /v1/schemas/by-key/sys.artifact/schema-json` |
-| 解決の前提 | URL の解決 (編集ツールのブラウザからの取得) には、バックエンドの起動と、同じオリジンの `/v1/` からバックエンドへ到達できること ([外部参照の環境の切り替え](#外部参照の環境の切り替え-env-047)) が必要 |
+| 解決の前提 | 外部参照の解決には、バックエンドの起動と、`/openapi.yaml` を配信しているホストから `/v1/` へ到達できることが必要 ([外部参照の環境の切り替え](#外部参照の環境の切り替え-env-047)) |
 
 #### スキーマ取得 API (ENV-042)
 
@@ -369,23 +368,32 @@ JSON スキーマテーブルのスキーマを、REST API で取得できるよ
 |---|---|
 | スキーマの一覧 | 登録済みスキーマの識別情報 (`schemaId`、`schemaKey`、`schemaVersion` など)。スキーマ本体を除く |
 | スキーマの取得 | `schemaId`、または `schemaKey` (+ `version`。省略時は最新版) を指定して、識別情報とスキーマ本体 (`schemaJson`) を返す |
-| スキーマ本体だけの取得 | `schemaJson` 本体だけを返す。OpenAPI の外部参照 (ENV-043) の URL に使う。`schemaId`、または `schemaKey` (+ `version`) で指定する |
+| スキーマ本体だけの取得 | `schemaJson` 本体だけを返す。OpenAPI の外部参照 (ENV-043) の URL に使う。`schemaId`、または `schemaKey` (+ `version`) で指定する。外部参照として解決できるよう、本体から `$id` (`urn:`) を除いて返す (本体内の `#/$defs/...` が `urn:` を基準に解決されるのを避けるため。スキーマテーブルの内容と、検証に使うスキーマは変えない) |
 
 - パス・フィールド名・エラー形式は `API_GUIDELINE_FILE` に従う。存在しないスキーマは 404 とする。
 - スキーマの登録 (新しい版の追加) の API は、JSON スキーマの編集手順 (ENV-024) のために用意する。登録済みのスキーマは更新・削除できない。
 
 #### 外部参照の環境の切り替え (ENV-047)
 
-`OPENAPI_FILE` の `$ref` は、ホストを書かないため、仕様を読み込んだ場所 (ベース URI) を基準に解決される。ローカルと本番は、仕様を配信するホストで切り替える。
+`OPENAPI_FILE` の `$ref` は、ホストを書かないため、仕様を配信しているホスト (ベース URI) を基準に解決される。ローカルと本番は、仕様を配信するバックエンドのホストで切り替える。
 
 | 環境 | 仕様の配信元 | `/v1/` の解決先 |
 |---|---|---|
-| ローカル | `openapi-editor` (`http://localhost:<OPENAPI_EDITOR_PORT>/openapi/openapi.yaml`) | `openapi-editor` の `/v1/` を、ローカルのバックエンドへリバースプロキシする (5.2)。編集ツールと同じオリジンになるため、CORS の設定は不要 |
-| 本番 | 本番のバックエンドと同じホスト、または `/v1/` を本番のバックエンドへ中継する配信元 (API ゲートウェイ、ポータルなど) | 本番のバックエンド |
+| ローカル | ローカルのバックエンド (`http://localhost:<BACKEND_PORT>/openapi.yaml`) | ローカルのバックエンド (同じホスト) |
+| 本番 | 本番のバックエンド (`https://<本番のホスト>/openapi.yaml`)。または `/v1/` と `/openapi.yaml` を同じホストから本番のバックエンドへ中継する配信元 (API ゲートウェイなど) | 本番のバックエンド |
 
-- 環境ごとに `OPENAPI_FILE` を複製・書き換えしない。
+- 環境ごとに `OPENAPI_FILE` を複製・書き換えしない。リバースプロキシや CORS の設定も要らない。
 - 外部参照は最新版を参照する。スキーマテーブルに新しい版を登録すると、仕様の参照先は、`OPENAPI_FILE` を変更せずに最新版へ切り替わる。そのため、新しい版は、既存の REST API の呼び出し元に影響しないことを確認してから登録する。環境ごとに登録されている版が異なる場合、仕様の内容も環境ごとに異なる。
 - 実装 (REST API・検証) が使うスキーマは、仕様の外部参照ではなく、リクエストで指定する `schemaId` / `schemaKey` (ENV-022) である。外部参照が最新版を指しても、登録済みのリビジョンの検証には影響しない。
+
+#### 仕様の配信と確認 (ENV-048)
+
+| 項目 | 内容 |
+|---|---|
+| 配信 | バックエンドが `OPENAPI_FILE` を `/openapi.yaml` で配信する。コンテナには、`OPENAPI_DIR` を `/openapi` に読み取り専用でマウントする (本番では、イメージまたはデプロイ物に含める)。ファイルのパスは、環境変数 `OPENAPI_FILE` で変更できる |
+| 表示 | `/docs` (Swagger UI) が `/openapi.yaml` を読み込んで表示する。FastAPI が実装から自動生成する仕様ではなく、`OPENAPI_FILE` を表示する |
+| 確認 | 仕様を編集したら、バックエンドを起動して `/docs` を開き、エラー表示がないこと、外部参照のスキーマ (例: `ArtifactContent`) が展開されることを確認する |
+| 認証 | `/openapi.yaml` と `/docs` は、`/health` と同様に、認証を要求しない運用用のエンドポイントとして、OpenAPI の対象外とする |
 
 #### REST API と MCP の処理の共通化 (ENV-046)
 
@@ -436,7 +444,6 @@ COMPOSE_DIR/
   db.yaml               # PostgreSQL
   backend.yaml          # backend-init (マイグレーション + 初期データ投入)、backend
   web.yaml              # フロントエンド。既存の COMPOSE_ENTRY の内容を反映し、バックエンドとの連携設定を含む (ENV-039)
-  openapi-editor.yaml   # OpenAPI 編集ツール (Swagger Editor。ENV-045)
   dify.yaml             # (追加予定) Dify
 .devcontainer/
   devcontainer.json
@@ -457,20 +464,16 @@ COMPOSE_DIR/
 |---|---|---|---|
 | `db` | `DB_ENGINE` | `DB_PORT` の既定値 | `DB_PORT` |
 | `backend-init` | マイグレーション適用と初期データ投入。完了すると終了する | なし | なし |
-| `backend` | REST API (`/`)、MCP (`/mcp/`)。ヘルスチェック: `/health` | `BACKEND_PORT` の既定値 | `BACKEND_PORT` |
-| `openapi-editor` | OpenAPI 編集ツール (Swagger Editor。ENV-045)。`OPENAPI_DIR` を `/openapi` に読み取り専用でマウントし、編集の開始時に `OPENAPI_FILE` を読み込めるようにする。同じオリジンの `/v1/` をバックエンドへリバースプロキシする (ENV-047)。ヘルスチェックを設定する | `OPENAPI_EDITOR_PORT` の既定値 (コンテナ内 8080) | `OPENAPI_EDITOR_PORT` |
+| `backend` | REST API (`/v1/`)、MCP (`/mcp/`)。仕様の配信 (`/openapi.yaml`) と表示 (`/docs`)。ヘルスチェック: `/health`。`OPENAPI_DIR` を `/openapi` に読み取り専用でマウントする (ENV-048) | `BACKEND_PORT` の既定値 | `BACKEND_PORT` |
 
 起動順序: `db` (healthy) → `backend-init` (正常終了) → `backend` (healthy)
-
-`openapi-editor` は `db`・`backend` に依存せず、単独で起動する (プロキシ先は、リクエスト時に名前解決し、バックエンドが未起動でも起動できるようにする。プロキシ先は、Compose では `backend`、Dev Container ではバックエンドを動かす `app` とする)。公開ポートは `127.0.0.1` のみとし (`127.0.0.1:${OPENAPI_EDITOR_PORT:-8081}:8080`)、認証情報を持たせない (ENV-019)。
-
-Swagger Editor はブラウザ上で編集するため、編集結果はエディタからエクスポート (YAML) して `OPENAPI_FILE` へ保存する。この手順を `README_FILE` に記載する。ファイルとの自動同期が必要な場合は、別のツールをユーザーに確認する。
 
 フロントエンドのサービス (`web`) がある場合は、`backend` (healthy) の後に起動する。`web.yaml` の `depends_on` で定義する (ENV-039)。
 
 ### 5.3 Dev Container (ENV-010, ENV-011)
 
 - 起動方法: VS Code の「Dev Containers: Reopen in Container」。
+- Dev Container ではリポジトリ全体が `app` にマウントされるため、`app` 内で動かすバックエンドは、`OPENAPI_FILE` の既定のパス (リポジトリ直下の `openapi/openapi.yaml`) をそのまま読める (ENV-048)。
 - 構成: `app` (開発コンテナ。Python 3.13 以上、psql。VS Code の PostgreSQL 拡張機能を自動インストールする)、`db`。既存の Dev Container がある場合は、その構成にバックエンドに必要なものを追加する (ENV-031)。`backend` は自動起動せず、`app` 内で手動起動する。
 - 初回作成時に `post-create.sh` が、依存パッケージのインストール、`alembic upgrade head`、初期データ投入を実行する。フロントエンドの初期化処理が既にある場合は、それを残す。
 - ルートの `docker compose up` とは同時に使わない (同じプロジェクト・同じ DB ボリュームを共有する)。
@@ -511,4 +514,4 @@ Swagger Editor はブラウザ上で編集するため、編集結果はエデ�
 | 5 | REST API / MCP ツールの構築手順 (REST と MCP の処理の共通化 (ENV-046) の手順を含む) |
 | 6 | スキーマ変更手順 |
 | 7 | JSON スキーマの編集手順 (ENV-024) |
-| 8 | OpenAPI 仕様の編集手順 (編集ツールの起動と保存手順、スキーマ取得 API と外部参照 URL の書き方、環境の切り替え。ENV-042・ENV-043・ENV-045・ENV-047) |
+| 8 | OpenAPI 仕様の編集手順 (直接編集と `/docs` での確認、スキーマ取得 API と外部参照 URL の書き方、環境の切り替え。ENV-042・ENV-043・ENV-047・ENV-048) |
