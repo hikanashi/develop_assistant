@@ -7,7 +7,6 @@ from sqlalchemy.exc import OperationalError
 from sqlmodel import Session
 
 from app import mcp_server
-from app.config import STORE_MODE
 from app.db import engine, get_session
 from app.main import app
 
@@ -18,8 +17,6 @@ def db_session():
 
     content_revision / json_schema は更新・削除できないため、実際にコミットしてはならない。
     """
-    if STORE_MODE == "file":
-        pytest.skip("DB の接続情報がない (ファイルストア) ため PostgreSQL のテストはスキップ")
     try:
         connection = engine.connect()
     except OperationalError:

@@ -9,19 +9,16 @@ x-backend: &backend
   working_dir: /app
   volumes:
     - ../backend:/app
-  # 認証情報は .env から読み込む (POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB)。
-  # .env がない場合は読み込まず、バックエンドは backend/localdata の JSON に保存する (ファイルストア)
+  # 認証情報は必須の .env から読み込む (POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB)。
   env_file:
-    - path: ../.env
-      required: false
+    - ../.env
   environment:
     POSTGRES_HOST: db
 
 services:
   backend-init:
     <<: *backend
-    # .env がない場合 (POSTGRES_USER が未設定) はファイルストアのため、何もせず終了する
-    command: sh -c '[ -z "$$POSTGRES_USER" ] || (alembic upgrade head && python -m app.cli seed)'
+    command: sh -c 'alembic upgrade head && python -m app.cli seed'
     restart: "no"
     depends_on:
       db:

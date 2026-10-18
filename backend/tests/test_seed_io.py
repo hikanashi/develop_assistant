@@ -14,8 +14,6 @@ from app.seed_io import export_seed, load_seed
 
 @pytest.fixture
 def engine():
-    if DATABASE_URL is None:
-        pytest.skip("DB の接続情報がない (ファイルストア) ため PostgreSQL のテストはスキップ")
     eng = create_engine(DATABASE_URL)
     try:
         eng.connect().close()

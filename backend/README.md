@@ -1,6 +1,6 @@
 # backend
 
-FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバックエンドです。DBは PostgreSQL 18 を使います (`.env` がない場合は [ファイルストア](#env-がない場合-ファイルストア) で動きます)。
+FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバックエンドです。データの保存先には PostgreSQL 18 を使います。リポジトリルートに `.env` を作成し、DB 接続情報を設定してください。
 
 要件: [design/requiments/enviroment.md](../design/requiments/enviroment.md)
 
@@ -62,7 +62,7 @@ DB の認証情報は、リポジトリ直下の `.env` に分離しています
 - `db`、`backend-init`、`backend`、Dev Container の `app` が、compose の `env_file` で `.env` を読み込む。認証情報と DB 名は `.env` のみで管理し、compose ファイル・ソースコード・README には値を書かない。
 - バックエンドは [app/config.py](app/config.py) で、これらの変数から接続URLを組み立てる (パスワードに記号が含まれても使える)。接続先ホストは `POSTGRES_HOST` (compose 内では `db`。未設定なら `localhost`)、ポートは `POSTGRES_PORT` (未設定なら `5432`)。`DATABASE_URL` を設定すると、それを優先する。
 - **`POSTGRES_*` は DB ボリュームの作成時にだけ反映される。** 変更した場合は `docker compose down -v` でボリュームを削除して作り直す (データも消える)。
-- `.env` がなくても `docker compose up` は失敗せず、PostgreSQL を起動せずに、バックエンドが [ファイルストア](#env-がない場合-ファイルストア) で起動する (`db` は待機するだけ、`backend-init` は何もせず終了する)。PostgreSQL を使うには `.env.example` をコピーして `.env` を作成する。`.env` に追加の設定は不要。
+- `.env` がない場合は起動できないため、必ず `.env.example` をコピーして `.env` を作成する。`.env` に追加の設定は不要。
 - ポート番号 (`DB_PORT`、`BACKEND_PORT`、`WEB_PORT`) は認証情報ではないため、必要なときに `.env` へ追記するか、コマンドラインで指定する。
 - ローカル専用の値であり、本番 (Amazon RDS) の認証情報は使用しない。
 
@@ -79,7 +79,7 @@ DB の認証情報は、リポジトリ直下の `.env` に分離しています
 
 ### Dev Container を使わずに全サービスを起動する
 
-リポジトリのルートで `docker compose up` を実行すると、DB・バックエンド・フロントエンドがすべて起動し、初期データも投入されます。VS Code 以外から動作を確認したい場合や、Dify など他のサービスと組み合わせて使う場合に利用します。PostgreSQL を使うには、**事前に `cp .env.example .env` で `.env` を作成してください** ([環境変数 (.env)](#環境変数-env))。`.env` がない場合は、DB を起動せず、バックエンドがファイルストアで起動します ([.env がない場合](#env-がない場合-ファイルストア))。
+リポジトリのルートで `docker compose up` を実行すると、DB・バックエンド・フロントエンドがすべて起動し、初期データも投入されます。VS Code 以外から動作を確認したい場合や、Dify など他のサービスと組み合わせて使う場合に利用します。実行前に、**`cp .env.example .env` で `.env` を作成してください** ([環境変数 (.env)](#環境変数-env))。`.env` がない場合は Compose がエラーになります。
 
 ```bash
 docker compose up -d --build   # 起動 (-d でバックグラウンド。省略するとログを表示)
@@ -133,25 +133,6 @@ ruff check .                 # Lint
 docker compose down -v                                        # ルートのcompose
 docker compose -f .devcontainer/docker-compose.yml down -v    # Dev Container
 ```
-
-### .env がない場合 (ファイルストア)
-
-`.env` がなく、DB の接続情報 (`DATABASE_URL`、`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB`) がどれも設定されていない場合、バックエンドは PostgreSQL に接続せず、`backend/localdata/` 以下の JSON ファイルにデータを保存します。DB を用意せずに REST / MCP を試したいときに使います (要件: [enviroment.md](../design/requiments/enviroment.md) の 4.6)。
-
-```bash
-cd backend
-pip install -e ".[dev]"
-uvicorn app.main:app --reload --host 0.0.0.0   # .env を読み込まずに起動する
-```
-
-- リポジトリのルートで `docker compose up` を実行しても、`.env` がなければこの状態で起動する (`backend` と `web` のみ。`backend/localdata/` は `backend` コンテナにマウントされた `backend/` に作られる)。
-- 初回起動時に `backend/seed/*.json` を全テーブルへ投入し、`backend/localdata/<テーブル名>.json` (行の配列。DB のレコードと同じ列・値) を作成する。
-- レコードの追加などをコミットするたびに、変更があったファイルへ書き出す。再起動しても残り、`seed` は再投入されない。
-- ファイルは手で編集できる (次回の起動時に読み込まれる)。初期状態に戻すには `backend/localdata/` を削除して再起動する。
-- `python -m app.cli seed` / `export` は `localdata` に対して動く。`alembic` は PostgreSQL 用のため、この状態ではエラーになる。
-- 外部キー・CHECK 制約・一意制約と、JSON Schema の検証は PostgreSQL のときと同じように働く。PostgreSQL のトリガー (登録済みスキーマの更新・削除の禁止など) は働かない。
-- `localdata/` は Git にコミットされない (`.gitignore`)。`.env` を作成すると PostgreSQL に切り替わり、`localdata` のデータは引き継がれない。
-- 保存先は環境変数 `LOCALDATA_DIR` で変更できる (テスト用)。
 
 ## 2. GitHub Copilot での MCP 設定手順
 

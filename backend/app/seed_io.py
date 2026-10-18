@@ -13,23 +13,13 @@ from uuid import UUID
 
 from sqlalchemy import Engine, MetaData, Table, select
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
-from sqlalchemy.dialects.sqlite import insert as sqlite_insert
-from sqlmodel import SQLModel
-
-import app.models  # noqa: F401  (SQLModel.metadata にテーブルを登録する)
-
-EXCLUDED_TABLES = {"alembic_version"}
 
 
 def _reflect(engine: Engine) -> MetaData:
-    if engine.dialect.name == "sqlite":
-        # ファイルストア。SQLite からの reflect では UUID・日時の型が失われるため、モデルの定義を使う
-        return SQLModel.metadata
     metadata = MetaData()
     metadata.reflect(bind=engine)
-    for name in EXCLUDED_TABLES:
-        if name in metadata.tables:
-            metadata.remove(metadata.tables[name])
+    if "alembic_version" in metadata.tables:
+        metadata.remove(metadata.tables["alembic_version"])
     return metadata
 
 
@@ -72,8 +62,6 @@ def insert_rows(engine: Engine, data: dict[str, list[dict[str, Any]]]) -> int:
     """{"テーブル名": [行...]} を外部キー順に投入する。主キー重複の行はスキップする。"""
     if not data:
         return 0
-    insert = sqlite_insert if engine.dialect.name == "sqlite" else postgres_insert
-
     metadata = _reflect(engine)
     unknown = set(data) - set(metadata.tables)
     if unknown:
@@ -85,7 +73,7 @@ def insert_rows(engine: Engine, data: dict[str, list[dict[str, Any]]]) -> int:
             rows = data.get(table.name)
             if not rows:
                 continue
-            stmt = insert(table).on_conflict_do_nothing()
+            stmt = postgres_insert(table).on_conflict_do_nothing()
             # 列の組が異なる行 (デフォルト値を使う行と明示する行) は、組ごとに分けて挿入する
             groups: dict[frozenset[str], list[dict[str, Any]]] = {}
             for row in rows:
