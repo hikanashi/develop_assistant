@@ -1,11 +1,14 @@
 import json
 import uuid
 from collections.abc import Callable
-from typing import Any
+from typing import Annotated, Any
 
 from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
-from pydantic import ValidationError
+from fastmcp.exceptions import ValidationError as FastMCPValidationError
+from fastmcp.server.middleware import Middleware, MiddlewareContext
+from fastmcp.tools.function_tool import ToolResult
+from pydantic import Field, ValidationError
 from sqlalchemy import text
 from sqlmodel import Session
 
@@ -22,6 +25,38 @@ from app.schemas import (
 
 mcp = FastMCP("develop-assistant")
 
+_TOOL_INPUT_SOURCES = {
+    "listSchemas": {"schemaKey": "query", "recordType": "query"},
+    "getSchema": {"schemaId": "path"},
+    "getSchemaByKey": {"schemaKey": "path", "version": "query"},
+    "getSchemaJson": {"schemaId": "path"},
+    "getSchemaJsonByKey": {"schemaKey": "path", "version": "query"},
+    "createRevision": {"recordId": "path"},
+    "getRecord": {"recordId": "path"},
+}
+
+
+class InputValidationMiddleware(Middleware):
+    async def on_call_tool(self, context: MiddlewareContext, call_next: Callable) -> ToolResult:
+        try:
+            return await call_next(context)
+        except FastMCPValidationError as error:
+            if not isinstance(error.__cause__, ValidationError):
+                raise
+            name = context.message.name
+            details = services.invalid_request(
+                error.__cause__.errors(),
+                source="body",
+                field_sources=_TOOL_INPUT_SOURCES.get(name),
+            ).payload()
+            return ToolResult(
+                content=json.dumps(details, ensure_ascii=False),
+                is_error=True,
+            )
+
+
+mcp.add_middleware(InputValidationMiddleware())
+
 
 def _run(action: Callable[[Session], Any]) -> Any:
     """サービス層を呼び、エラーは REST と同じ形式 (code / message / details) の JSON を
@@ -34,7 +69,7 @@ def _run(action: Callable[[Session], Any]) -> Any:
     except services.ServiceError as e:
         raise ToolError(json.dumps(e.payload(), ensure_ascii=False)) from None
     except ValidationError as e:
-        error = services.invalid_request(e.errors())
+        error = services.invalid_request(e.errors(), source="body")
         raise ToolError(json.dumps(error.payload(), ensure_ascii=False)) from None
     return json.loads(json.dumps(result, default=_encode))
 
@@ -59,7 +94,10 @@ def db_version() -> str:
 
 
 @mcp.tool(name="listSchemas")
-def list_schemas(schemaKey: str | None = None, recordType: RecordType | None = None):
+def list_schemas(
+    schemaKey: str = None,  # noqa: RUF013
+    recordType: RecordType = None,
+):
     """登録済みの JSON Schema (schemaJson を除く) を一覧する。"""
     return _run(lambda s: services.list_schemas(s, schemaKey, recordType))
 
@@ -75,7 +113,10 @@ def get_schema(schemaId: uuid.UUID):
 
 
 @mcp.tool(name="getSchemaByKey")
-def get_schema_by_key(schemaKey: str, version: int | None = None):
+def get_schema_by_key(
+    schemaKey: str,
+    version: Annotated[int, Field(ge=1)] = None,  # noqa: RUF013
+):
     """schemaKey で JSON Schema を取得する。version を省略すると最新版を返す。"""
     return _run(
         lambda s: services.get_schema(s, SchemaRef(schema_key=schemaKey, schema_version=version))
@@ -89,7 +130,10 @@ def get_schema_json(schemaId: uuid.UUID):
 
 
 @mcp.tool(name="getSchemaJsonByKey")
-def get_schema_json_by_key(schemaKey: str, version: int | None = None):
+def get_schema_json_by_key(
+    schemaKey: str,
+    version: Annotated[int, Field(ge=1)] = None,  # noqa: RUF013
+):
     """schemaKey の JSON Schema 本体 (schemaJson) だけを返す。version を省略すると最新版。"""
     return _run(
         lambda s: services.get_schema_json(
@@ -100,8 +144,8 @@ def get_schema_json_by_key(schemaKey: str, version: int | None = None):
 
 @mcp.tool(name="createSchema")
 def create_schema(
-    schemaKey: str,
-    schemaVersion: int,
+    schemaKey: Annotated[str, Field(min_length=1)],
+    schemaVersion: Annotated[int, Field(ge=1)],
     recordType: RecordType,
     schemaJson: dict[str, Any],
     featureDomain: FeatureDomain | None = None,
@@ -126,11 +170,11 @@ def create_schema(
 @mcp.tool(name="createRecord")
 def create_record(
     recordType: RecordType,
-    logicalKey: str,
+    logicalKey: Annotated[str, Field(min_length=1)],
     contentJson: dict[str, Any],
     schemaId: uuid.UUID | None = None,
     schemaKey: str | None = None,
-    schemaVersion: int | None = None,
+    schemaVersion: Annotated[int, Field(ge=1)] | None = None,
     featureDomain: FeatureDomain | None = None,
     originPlatformId: uuid.UUID | None = None,
     originProductId: uuid.UUID | None = None,
@@ -166,7 +210,7 @@ def create_revision(
     contentJson: dict[str, Any],
     schemaId: uuid.UUID | None = None,
     schemaKey: str | None = None,
-    schemaVersion: int | None = None,
+    schemaVersion: Annotated[int, Field(ge=1)] | None = None,
     changeReason: str | None = None,
 ):
     """既存レコードに新しいリビジョンを追加する。検証の扱いは createRecord と同じ。"""

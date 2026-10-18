@@ -5,9 +5,11 @@ import json
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
+from app.db import get_session
 from app.main import app
 from app.mcp_server import MCP_ONLY_TOOLS, mcp
 
@@ -21,6 +23,90 @@ needs_spec = pytest.mark.skipif(not SPEC_PATH.exists(), reason="openapi/ があ�
 def load_spec():
     yaml = pytest.importorskip("yaml")  # uvicorn[standard] の依存
     return yaml.safe_load(SPEC_PATH.read_text(encoding="utf-8"))
+
+
+def resolve_schema(schema, components):
+    if "$ref" in schema:
+        target = components
+        for part in schema["$ref"].removeprefix("#/").split("/"):
+            target = target[part]
+        schema = {
+            **resolve_schema(target, components),
+            **{k: v for k, v in schema.items() if k != "$ref"},
+        }
+
+    resolved = {
+        key: resolve_schema(value, components) if isinstance(value, dict) else value
+        for key, value in schema.items()
+        if key != "allOf"
+    }
+    for part in schema.get("allOf", []):
+        part = resolve_schema(part, components)
+        if "properties" in part:
+            resolved["properties"] = {**resolved.get("properties", {}), **part["properties"]}
+        if "required" in part:
+            resolved["required"] = list(
+                dict.fromkeys(resolved.get("required", []) + part["required"])
+            )
+        for key, value in part.items():
+            if key not in {"properties", "required"}:
+                resolved.setdefault(key, value)
+    for key in ("anyOf", "oneOf"):
+        if key in resolved:
+            resolved[key] = [resolve_schema(part, components) for part in resolved[key]]
+    return resolved
+
+
+def schema_contract(schema):
+    if "type" in schema and isinstance(schema["type"], list):
+        alternatives = []
+        for value in schema["type"]:
+            branch = {**schema, "type": value}
+            if value == "null":
+                branch = {"type": value}
+            alternatives.append(schema_contract(branch))
+        return "union", tuple(sorted(alternatives, key=repr))
+    if "anyOf" in schema or "oneOf" in schema:
+        key = "anyOf" if "anyOf" in schema else "oneOf"
+        return "union", tuple(sorted((schema_contract(part) for part in schema[key]), key=repr))
+    return tuple(
+        (key, tuple(value) if isinstance(value, list) else value)
+        for key, value in sorted(schema.items())
+        if key
+        in {
+            "type",
+            "format",
+            "enum",
+            "minimum",
+            "maximum",
+            "exclusiveMinimum",
+            "exclusiveMaximum",
+            "minLength",
+            "maxLength",
+            "pattern",
+            "minItems",
+            "maxItems",
+        }
+    )
+
+
+def operation_inputs(operation, components):
+    properties = {}
+    required = set()
+    for parameter in operation.get("parameters", []):
+        parameter = resolve_schema(parameter, components)
+        properties[parameter["name"]] = resolve_schema(parameter["schema"], components)
+        if parameter.get("required"):
+            required.add(parameter["name"])
+
+    request_body = operation.get("requestBody")
+    if request_body:
+        body = resolve_schema(request_body, components)
+        if body.get("required"):
+            schema = resolve_schema(body["content"]["application/json"]["schema"], components)
+            properties.update(schema.get("properties", {}))
+            required.update(schema.get("required", []))
+    return properties, required
 
 
 def operations(paths):
@@ -52,15 +138,17 @@ def test_mcp_tools_match_spec_operations():
     # REST API にある処理を、MCP 専用のツールにしない
     assert not MCP_ONLY_TOOLS & operation_ids
 
-    # パス・クエリのパラメーターは、同名の MCP ツールの引数にある
+    components = spec
     for method, path, op_id in operations(spec["paths"]):
-        names = {
-            spec["components"]["parameters"][p["$ref"].rsplit("/", 1)[1]]["name"]
-            if "$ref" in p
-            else p["name"]
-            for p in spec["paths"][path][method].get("parameters", [])
-        }
-        assert names <= set(tools[op_id].input_schema["properties"]), op_id
+        operation = spec["paths"][path][method]
+        properties, required = operation_inputs(operation, components)
+        input_schema = tools[op_id].input_schema
+        assert set(input_schema["properties"]) == set(properties), op_id
+        assert set(input_schema.get("required", [])) == required, op_id
+        for name, schema in properties.items():
+            expected = schema_contract(resolve_schema(schema, components))
+            actual = schema_contract(input_schema["properties"][name])
+            assert actual == expected, f"{op_id}.{name}: {actual} != {expected}"
 
 
 @needs_spec
@@ -144,3 +232,61 @@ def test_rest_and_mcp_return_same_results_and_errors(client):
     rest = client.get("/v1/schemas/by-key/no.such")
     assert rest.status_code == 404
     assert mcp_error("getSchemaByKey", schemaKey="no.such") == rest.json()
+
+
+def test_mcp_input_validation_matches_rest(monkeypatch):
+    monkeypatch.setitem(app.dependency_overrides, get_session, lambda: None)
+    rest_client = TestClient(app)
+    cases = [
+        ("createSchema", {}, "post", "/v1/schemas", {}),
+        (
+            "createSchema",
+            {
+                "schemaKey": "test.invalid",
+                "schemaVersion": 0,
+                "recordType": "ARTIFACT",
+                "schemaJson": {},
+            },
+            "post",
+            "/v1/schemas",
+            {
+                "schemaKey": "test.invalid",
+                "schemaVersion": 0,
+                "recordType": "ARTIFACT",
+                "schemaJson": {},
+            },
+        ),
+        (
+            "createSchema",
+            {
+                "schemaKey": "test.invalid",
+                "schemaVersion": 1,
+                "recordType": "INVALID",
+                "schemaJson": {},
+            },
+            "post",
+            "/v1/schemas",
+            {
+                "schemaKey": "test.invalid",
+                "schemaVersion": 1,
+                "recordType": "INVALID",
+                "schemaJson": {},
+            },
+        ),
+        ("getSchema", {"schemaId": "not-a-uuid"}, "get", "/v1/schemas/not-a-uuid", None),
+        (
+            "createRecord",
+            {"recordType": "ARTIFACT", "logicalKey": "no-schema", "contentJson": {}},
+            "post",
+            "/v1/records",
+            {"recordType": "ARTIFACT", "logicalKey": "no-schema", "contentJson": {}},
+        ),
+    ]
+    for tool, arguments, method, path, body in cases:
+        response = (
+            getattr(rest_client, method)(path, json=body)
+            if body is not None
+            else getattr(rest_client, method)(path)
+        )
+        assert response.status_code == 400
+        assert mcp_error(tool, **arguments) == response.json()

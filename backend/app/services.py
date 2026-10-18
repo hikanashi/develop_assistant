@@ -8,6 +8,7 @@ import uuid
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from pydantic.alias_generators import to_camel
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -99,7 +100,12 @@ class SchemaValidationError(ServiceError):
 _INPUT_SOURCES = {"body", "query", "path", "header"}
 
 
-def invalid_request(errors: Sequence[Mapping[str, Any]]) -> ServiceError:
+def invalid_request(
+    errors: Sequence[Mapping[str, Any]],
+    *,
+    source: str | None = None,
+    field_sources: Mapping[str, str] | None = None,
+) -> ServiceError:
     """入力項目の指定エラー (必須項目の未指定・型の不一致など。400)。
 
     errors は Pydantic / FastAPI の検証エラー (loc / msg / type)。REST と MCP で共通に使う。
@@ -107,14 +113,23 @@ def invalid_request(errors: Sequence[Mapping[str, Any]]) -> ServiceError:
     items = []
     for e in errors:
         loc = [str(p) for p in e.get("loc", ())]
-        source = loc.pop(0) if loc and loc[0] in _INPUT_SOURCES else None
+        item_source = loc.pop(0) if loc and loc[0] in _INPUT_SOURCES else None
+        loc = [to_camel(part) for part in loc]
+        if loc:
+            item_source = item_source or (field_sources or {}).get(loc[0])
+        item_source = item_source or source
+        error_type = e.get("type", "")
+        message = e.get("msg", "")
+        if error_type == "missing_argument":
+            error_type = "missing"
+            message = "Field required"
         item = {
             "path": "/" + "/".join(loc) if loc else "",
-            "message": e.get("msg", ""),
-            "type": e.get("type", ""),
+            "message": message,
+            "type": error_type,
         }
-        if source:
-            item["in"] = source
+        if item_source:
+            item["in"] = item_source
         items.append(item)
     return ServiceError(
         400,
