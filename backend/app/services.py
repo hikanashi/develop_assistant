@@ -5,8 +5,10 @@ jsonb 列 (content_json) の値は、DBへ書き込む前に JSON_SCHEMA.schema_
 """
 
 import uuid
+from collections.abc import Mapping, Sequence
 from typing import Any
 
+from pydantic.alias_generators import to_camel
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -32,20 +34,26 @@ from app.schemas import (
 
 
 class ServiceError(Exception):
-    """検証以外の業務エラー。status_code は REST の HTTP ステータスに使う。"""
+    """業務エラー。REST は status_code の HTTP ステータス、MCP はツールエラーで payload() を返す。
 
-    def __init__(self, status_code: int, code: str, message: str) -> None:
+    payload() は API ガイドラインのエラー形式 (code / message / details)。
+    """
+
+    def __init__(
+        self, status_code: int, code: str, message: str, details: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(message)
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.details = details
 
     def payload(self) -> dict[str, Any]:
-        return {"error": self.code, "message": self.message}
+        return {"code": self.code, "message": self.message, "details": self.details}
 
 
-class SchemaValidationError(Exception):
-    """JSON Schema の検証エラー。payload() をそのまま要求元へ応答する。"""
+class SchemaValidationError(ServiceError):
+    """JSON Schema の検証エラー (422)。details に違反の詳細とスキーマの再取得方法を含める。"""
 
     def __init__(
         self,
@@ -55,39 +63,80 @@ class SchemaValidationError(Exception):
         schema: JsonSchema | None = None,
         latest_version: int | None = None,
     ) -> None:
-        super().__init__(f"{target} が JSON Schema に適合しません ({len(errors)} 件)")
-        self.errors = errors
-        self.target = target
-        self.schema = schema
-        self.latest_version = latest_version
-
-    def payload(self) -> dict[str, Any]:
-        body: dict[str, Any] = {"error": "json_schema_validation_failed", "target": self.target}
-        if self.schema is not None:
-            schema_id = str(self.schema.schema_id)
-            body["schema"] = {
-                "schema_id": schema_id,
-                "schema_key": self.schema.schema_key,
-                "schema_version": self.schema.schema_version,
-                "latest_schema_version": self.latest_version,
+        details: dict[str, Any] = {"target": target}
+        if schema is not None:
+            schema_id = str(schema.schema_id)
+            details["schema"] = {
+                "schemaId": schema_id,
+                "schemaKey": schema.schema_key,
+                "schemaVersion": schema.schema_version,
+                "latestSchemaVersion": latest_version,
             }
-            body["refetch"] = {
-                "rest": f"GET /schemas/{schema_id}",
-                "mcp_tool": "get_json_schema",
-                "arguments": {"schema_id": schema_id},
+            details["refetch"] = {
+                "rest": f"GET /v1/schemas/{schema_id}",
+                "mcpTool": "getSchema",
+                "arguments": {"schemaId": schema_id},
             }
-            body["hint"] = (
+            details["hint"] = (
                 "スキーマを再取得し、errors の path (JSON Pointer) の箇所を修正して再送してください。"
-                "latest_schema_version が schema_version より大きい場合は、最新版で検証してください。"
+                "latestSchemaVersion が schemaVersion より大きい場合は、最新版で検証してください。"
             )
         else:
-            body["meta_schema"] = META_SCHEMA_URI
-            body["hint"] = (
+            details["metaSchema"] = META_SCHEMA_URI
+            details["hint"] = (
                 "errors の path の箇所を修正して再送してください。"
-                "schema_json は JSON Schema draft 2020-12 で記述します。"
+                "schemaJson は JSON Schema draft 2020-12 で記述します。"
             )
-        body["errors"] = self.errors
-        return body
+        details["errors"] = errors
+        super().__init__(
+            422,
+            "JSON_SCHEMA_VALIDATION_FAILED",
+            f"{target} が JSON Schema に適合しません ({len(errors)} 件)",
+            details,
+        )
+        self.errors = errors
+
+
+_INPUT_SOURCES = {"body", "query", "path", "header"}
+
+
+def invalid_request(
+    errors: Sequence[Mapping[str, Any]],
+    *,
+    source: str | None = None,
+    field_sources: Mapping[str, str] | None = None,
+) -> ServiceError:
+    """入力項目の指定エラー (必須項目の未指定・型の不一致など。400)。
+
+    errors は Pydantic / FastAPI の検証エラー (loc / msg / type)。REST と MCP で共通に使う。
+    """
+    items = []
+    for e in errors:
+        loc = [str(p) for p in e.get("loc", ())]
+        item_source = loc.pop(0) if loc and loc[0] in _INPUT_SOURCES else None
+        loc = [to_camel(part) for part in loc]
+        if loc:
+            item_source = item_source or (field_sources or {}).get(loc[0])
+        item_source = item_source or source
+        error_type = e.get("type", "")
+        message = e.get("msg", "")
+        if error_type == "missing_argument":
+            error_type = "missing"
+            message = "Field required"
+        item = {
+            "path": "/" + "/".join(loc) if loc else "",
+            "message": message,
+            "type": error_type,
+        }
+        if item_source:
+            item["in"] = item_source
+        items.append(item)
+    return ServiceError(
+        400,
+        "INVALID_REQUEST",
+        f"入力項目の指定が正しくありません ({len(items)} 件)",
+        {"errors": items},
+    )
 
 
 def _flush(session: Session) -> None:
@@ -96,7 +145,7 @@ def _flush(session: Session) -> None:
     except IntegrityError as e:
         session.rollback()
         detail = str(e.orig).splitlines()[0] if e.orig else str(e)
-        raise ServiceError(409, "constraint_violation", detail) from None
+        raise ServiceError(409, "CONSTRAINT_VIOLATION", detail) from None
 
 
 def _schema_out(row: JsonSchema) -> JsonSchemaOut:
@@ -132,7 +181,7 @@ def _find_schema(session: Session, ref: SchemaRef) -> JsonSchema:
     if ref.schema_id is not None:
         row = session.get(JsonSchema, ref.schema_id)
         if row is None:
-            raise ServiceError(404, "schema_not_found", f"schema_id {ref.schema_id} がありません")
+            raise ServiceError(404, "SCHEMA_NOT_FOUND", f"schemaId {ref.schema_id} がありません")
         return row
     assert ref.schema_key is not None
     version = ref.schema_version or _latest_version(session, ref.schema_key)
@@ -144,8 +193,8 @@ def _find_schema(session: Session, ref: SchemaRef) -> JsonSchema:
     if row is None:
         raise ServiceError(
             404,
-            "schema_not_found",
-            f"schema_key {ref.schema_key} (version {version or '最新'}) がありません",
+            "SCHEMA_NOT_FOUND",
+            f"schemaKey {ref.schema_key} (version {version or '最新'}) がありません",
         )
     return row
 
@@ -153,6 +202,16 @@ def _find_schema(session: Session, ref: SchemaRef) -> JsonSchema:
 def get_schema(session: Session, ref: SchemaRef) -> JsonSchemaOut:
     """schema_id、または schema_key (+ schema_version。省略時は最新版) でスキーマを取得する。"""
     return _schema_out(_find_schema(session, ref))
+
+
+def get_schema_json(session: Session, ref: SchemaRef) -> dict[str, Any]:
+    """スキーマ本体 (schema_json) だけを返す。OpenAPI からの外部参照 (URL) で使う。
+
+    $id (urn:) を残すと、本体内の $ref (#/$defs/...) が urn を基準に解決され、外部参照として
+    取り込めない。そのため $id を除いて返す (スキーマテーブルの内容は変えない)。
+    """
+    body = _find_schema(session, ref).schema_body
+    return {k: v for k, v in body.items() if k != "$id"}
 
 
 def register_schema(session: Session, data: JsonSchemaIn) -> JsonSchemaOut:
@@ -167,7 +226,7 @@ def register_schema(session: Session, data: JsonSchemaIn) -> JsonSchemaOut:
             )
         )
     if errors:
-        raise SchemaValidationError(errors, target="schema_json")
+        raise SchemaValidationError(errors, target="schemaJson")
 
     row = JsonSchema(
         schema_key=data.schema_key,
@@ -193,15 +252,15 @@ def _validate_content(
     if schema.record_type != record_type or schema.feature_domain not in (None, feature_domain):
         raise ServiceError(
             409,
-            "schema_mismatch",
+            "SCHEMA_MISMATCH",
             f"スキーマ {schema.schema_key} v{schema.schema_version} は "
-            f"record_type={schema.record_type} / feature_domain={schema.feature_domain} 用です",
+            f"recordType={schema.record_type} / featureDomain={schema.feature_domain} 用です",
         )
     errors = validate_instance(schema.schema_body, content)
     if errors:
         raise SchemaValidationError(
             errors,
-            target="content_json",
+            target="contentJson",
             schema=schema,
             latest_version=_latest_version(session, schema.schema_key),
         )
@@ -262,7 +321,7 @@ def add_revision(session: Session, record_id: uuid.UUID, data: RevisionIn) -> Re
         select(ContentRecord).where(ContentRecord.record_id == record_id).with_for_update()
     ).first()
     if record is None:
-        raise ServiceError(404, "record_not_found", f"record_id {record_id} がありません")
+        raise ServiceError(404, "RECORD_NOT_FOUND", f"recordId {record_id} がありません")
     schema = _find_schema(session, data)
     _validate_content(session, schema, data.content_json, record.record_type, record.feature_domain)
     revision = _add_revision(session, record, schema, data)
@@ -274,7 +333,7 @@ def add_revision(session: Session, record_id: uuid.UUID, data: RevisionIn) -> Re
 def get_record(session: Session, record_id: uuid.UUID) -> RecordWithRevisions:
     record = session.get(ContentRecord, record_id)
     if record is None:
-        raise ServiceError(404, "record_not_found", f"record_id {record_id} がありません")
+        raise ServiceError(404, "RECORD_NOT_FOUND", f"recordId {record_id} がありません")
     revisions = session.exec(
         select(ContentRevision)
         .where(ContentRevision.record_id == record_id)

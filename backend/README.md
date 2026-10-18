@@ -6,7 +6,7 @@ FastAPI (REST) と FastMCP (MCP) を1つのプロセスで提供するバック�
 
 | 項目 | 内容 |
 |---|---|
-| REST API | `http://localhost:8000/` (Swagger UI: `/docs`、ヘルスチェック: `/health`) |
+| REST API | `http://localhost:8000/v1/` (ヘルスチェック: `/health`)。仕様: [openapi/openapi.yaml](../openapi/openapi.yaml) (`/openapi.yaml` で配信し、Swagger UI の `/docs` で表示。[8. OpenAPI 仕様の編集手順](#8-openapi-仕様の編集手順)) |
 | MCP | `http://localhost:8000/mcp/` (Streamable HTTP。末尾の `/` が必要) |
 | DB | PostgreSQL 18 (`db:5432`。ユーザー・パスワード・DB名は [.env](#環境変数-env) で設定) |
 | DB確認 | VS Code の PostgreSQL 拡張機能 ([4. DBの内容確認手順](#4-dbの内容確認手順)) |
@@ -102,6 +102,22 @@ docker compose down -v         # 停止してDBのデータも削除
 - スキーマ変更のコマンドは `docker compose exec backend alembic ...` のように実行する。
 - Dev Container と同時に起動しない (同じプロジェクト・同じDBを共有するため、どちらか一方を使う)。
 
+### docker compose up 後に Swagger UI で REST API を確認する
+
+`docker compose up` (または `docker compose up -d backend`) の後、ブラウザで REST API の仕様と動作を確認できます。
+
+1. `docker compose ps` で、`backend` が `healthy`、`backend-init` が `Exited (0)` であることを確認する (`curl localhost:8000/health` が `{"status":"ok"}` を返せばよい)。
+2. ブラウザで `http://localhost:8000/docs` を開く (ポートを変えた場合は `BACKEND_PORT` の値)。
+3. 画面上部に `develop_assistant backend API 1.0.0 OAS 3.1` と表示され、`json-schema`・`record` の operation (`listSchemas`、`createRecord` など) が並んでいることを確認する。
+   - 表示されているのは、FastAPI が実装から自動生成した仕様ではなく、[openapi/openapi.yaml](../openapi/openapi.yaml) (`http://localhost:8000/openapi.yaml`) です。
+4. 画面下部の **Schemas** で `ArtifactContent` を開き、`SYS.1〜SYS.3 成果物` などのスキーマが展開されていることを確認する。仕様の外部参照 (`$ref: /v1/schemas/by-key/sys.artifact/schema-json`) が、バックエンドのスキーマテーブルから解決されている状態です。画面上部に `Errors` / `Resolver error` が出ていないことも確認する。
+5. operation を試す。例: `listSchemas` を開き、**Try it out** → **Execute** を押すと、登録済みのスキーマの一覧 (`sys.artifact` など) が返る。`getSchemaByKey` に `schemaKey` = `sys.artifact` を指定すると、スキーマ本体 (`schemaJson`) まで取得できる。
+
+- 認証は未実装のため、**Authorize** で値を入力する必要はない (仕様には Bearer 認証を記載している)。
+- Swagger UI の画面 (JavaScript / CSS) は、CDN (`cdn.jsdelivr.net`) から読み込まれる。インターネットに接続できない環境では、`/docs` が空白になる。その場合は `http://localhost:8000/openapi.yaml` を VS Code などで開いて確認する。
+- `openapi/openapi.yaml` を編集した場合は、ブラウザを再読み込みすれば反映される (バックエンドの再起動は不要。[8. OpenAPI 仕様の編集手順](#8-openapi-仕様の編集手順))。
+- 画面が表示されない、または 404 になるときは、`docker compose logs backend` を確認し、`openapi/` が `backend` コンテナの `/openapi` にマウントされているか (`docker compose exec backend ls /openapi`) を確認する。
+
 ### compose ファイルを追加する (Dify など)
 
 ルートの [compose.yaml](../compose.yaml) は、`compose/` 配下の種類別ファイルを `include` で読み込むだけの構成です。
@@ -159,7 +175,7 @@ VS Code の GitHub Copilot (Agent モード) から、このバックエンド�
    - チームで共有する場合はこのファイルをコミットする。認証情報を書かないこと。
 
 3. `.vscode/mcp.json` を開くと表示される **開始** をクリックするか、コマンドパレットの **MCP: List Servers** → `develop-assistant` → **Start Server** を実行する。
-4. Copilot Chat を **Agent** モードにし、ツールアイコン (「ツールの構成」) の一覧に `develop-assistant` のツール (`db_version` など) が表示されていることを確認する。
+4. Copilot Chat を **Agent** モードにし、ツールアイコン (「ツールの構成」) の一覧に `develop-assistant` のツール (`db_version`、`listSchemas` など) が表示されていることを確認する。
 5. チャットで利用する。例: 「`db_version` ツールで PostgreSQL のバージョンを教えて」。ツールの実行時には確認ダイアログが表示されるので許可する。
 
 ### うまく動かないとき
@@ -347,157 +363,119 @@ DB側で保証している主なルールは次のとおりです (整合性ル�
 
 ## 5. REST API / MCPツールの構築手順
 
-REST API と MCP ツールは同じプロセス ([app/main.py](app/main.py)) で動き、DBアクセスの処理を共通化して両方から呼び出す構成にします。
+REST API は [api-guideline.md](../design/requiments/api-guideline.md) に従い、**OpenAPI 仕様 ([openapi/openapi.yaml](../openapi/openapi.yaml)) を先に作成してから実装します** ([8. OpenAPI 仕様の編集手順](#8-openapi-仕様の編集手順))。MCP ツールは REST API の operation を MCP として公開したもので、REST と MCP の処理は `services.py` に共通化します (要件: [enviroment.md](../design/requiments/enviroment.md) の ENV-046)。
 
 ```
-app/
+openapi/openapi.yaml   # REST API の仕様 (実装の基準)
+backend/app/
   models.py        # SQLModel のテーブル定義 (DBの形)
-  schemas.py       # Pydantic の入出力モデル (JSONの形)
-  services.py      # DB ⇔ JSON の変換と更新処理 (REST/MCP共通)
-  routers/         # FastAPI のルーター
-  mcp_server.py    # MCPツール
-  main.py          # アプリ本体 (ルーターの登録、/mcp のマウント)
+  schemas.py       # Pydantic の入出力モデル (JSONの形。camelCase)
+  services.py      # DB ⇔ JSON の変換と更新処理、エラーの生成 (REST/MCP共通)
+  routers/         # FastAPI のルーター (薄いアダプター)
+  mcp_server.py    # MCPツール (薄いアダプター)
+  main.py          # アプリ本体 (ルーターの登録、エラー形式、/mcp のマウント)
 ```
 
-`models.py` と `db.py` は作成済みです ([テーブル構成と制約](#テーブル構成と制約))。`schemas.py` `services.py` `routers/` は JSON Schema の検証とレコード登録 ([7. JSON スキーマの編集手順](#7-json-スキーマの編集手順)) 用に作成済みです。以降の手順は、例として `customer` テーブルの取得・設定APIを作る流れです。
+### 共通化のルール
 
-### 手順1: テーブルを用意する
+| 項目 | ルール |
+|---|---|
+| 対応関係 | REST の operation 1 つにつき MCP ツールを 1 つ作る。ツール名は `operationId` (`verbResource`)、引数名は REST と同じ camelCase |
+| 処理 | 業務処理・DB 更新・JSON スキーマの検証・エラーの生成は `services.py` にだけ書く。ルーターと MCP ツールは、入力の受け取りと `services.py` の呼び出し、結果・エラーの変換だけを行う |
+| 入出力 | REST と MCP は同じ Pydantic モデル (`schemas.py`) を使う。JSON のフィールド名は camelCase (`alias_generator=to_camel`) |
+| エラー | `services.ServiceError` が `{"code", "message", "details"}` を作る。REST は HTTP ステータス (400 / 404 / 409 / 422 / 500)、MCP は ToolError のメッセージ (同じ JSON) で返す |
+| MCP 専用のツール | REST API にない処理に限り認める (`MCP_ONLY_TOOLS`。例: `db_version`) |
+| 認証 | 仕様 (`openapi.yaml`) には Bearer 認証を必須と記載しているが、ローカル開発では未実装 ([ADR-0014](../design/requiments/adr/0014-openapi-schema-import.md)) |
+
+仕様と実装の一致は `tests/test_api_conformance.py` が確認します (全 operation に同名の MCP ツールがあること、REST と MCP が同じ結果・同じエラーを返すこと、スキーマの外部参照がホストと版を含まないこと)。このテストは `openapi/openapi.yaml` を読むため、`openapi/` がない環境ではスキップされます (`backend` コンテナには `/openapi` としてマウントされるので実行されます)。
+
+`models.py` と `db.py` は作成済みです ([テーブル構成と制約](#テーブル構成と制約))。`schemas.py` `services.py` `routers/` は JSON Schema の検証とレコード登録 ([7. JSON スキーマの編集手順](#7-json-スキーマの編集手順)) 用に作成済みです。以降の手順は、例として `customer` テーブルの取得 API を追加する流れです。
+
+### 手順1: OpenAPI 仕様を更新する
+
+[8. OpenAPI 仕様の編集手順](#8-openapi-仕様の編集手順) に従い、`openapi/openapi.yaml` に operation (`listCustomers` など) とスキーマを追加する。パスは kebab-case (`/v1/customers`)、JSON のフィールドは camelCase、ステータスとエラー形式はガイドラインに従う。
+
+### 手順2: テーブルを用意する
 
 `app/models.py` に ER 設計のテーブルが定義済みのため、まず対象のモデルを確認します。テーブルの追加・列の変更が必要な場合は [6. スキーマ変更手順](#6-スキーマ変更手順) に従ってください。
 
-### 手順2: JSON の入出力モデルを定義する
+### 手順3: JSON の入出力モデルを定義する
 
-`app/schemas.py` に Pydantic v2 のモデルを定義します。DBの行とJSONの形が違う場合は、ここで差を吸収します。
+`app/schemas.py` に、`ApiModel` を継承した Pydantic v2 のモデルを定義します (属性名は snake_case、JSON のフィールド名は自動で camelCase になる)。モデルは `openapi.yaml` のスキーマと一致させます。
 
 ```python
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
 
-
-class CustomerOut(BaseModel):
+class CustomerOut(ApiModel):
     customer_id: uuid.UUID
     name: str
     created_at: datetime
-
-
-class CustomerIn(BaseModel):
-    customer_id: uuid.UUID | None = None  # 省略時は新規作成
-    name: str
 ```
 
-### 手順3: DB ⇔ JSON 変換の処理を書く
+### 手順4: DB ⇔ JSON 変換の処理を書く
 
-`app/services.py` に、取得 (DB → JSON) と設定 (JSON → DB) の処理を書きます。REST と MCP の両方から呼ぶため、`Session` は引数で受け取ります。
+`app/services.py` に、取得 (DB → JSON) と設定 (JSON → DB) の処理を書きます。REST と MCP の両方から呼ぶため、`Session` は引数で受け取ります。業務エラーは `ServiceError(status_code, code, message, details)` で表します。
 
 ```python
 from sqlmodel import Session, select
 
 from app.models import Customer
-from app.schemas import CustomerIn, CustomerOut
+from app.schemas import CustomerOut
 
 
 def list_customers(session: Session) -> list[CustomerOut]:
     rows = session.exec(select(Customer).order_by(Customer.created_at)).all()
-    return [CustomerOut.model_validate(r, from_attributes=True) for r in rows]
-
-
-def upsert_customer(session: Session, data: CustomerIn) -> CustomerOut:
-    row = session.get(Customer, data.customer_id) if data.customer_id else None
-    if row is None:
-        row = Customer(**data.model_dump(exclude_none=True))
-    else:
-        row.name = data.name
-    session.add(row)
-    session.commit()
-    session.refresh(row)
-    return CustomerOut.model_validate(row, from_attributes=True)
+    return [CustomerOut.model_validate(r) for r in rows]
 ```
 
 JSON Schema の検証など、DBの外部キーで表現できない整合性チェックもこの層で行います ([design/database/er-design.md](../design/database/er-design.md) の整合性ルール参照)。
 
-### 手順4: REST API を作る
+### 手順5: REST API を作る
 
-1. `app/routers/customers.py` を作成する。
+1. `app/routers/customers.py` を作成する。`operation_id` は仕様の `operationId` と同じにする。
 
    ```python
-   from collections.abc import Iterator
+   from typing import Annotated
 
    from fastapi import APIRouter, Depends
    from sqlmodel import Session
 
    from app import services
-   from app.db import engine
-   from app.schemas import CustomerIn, CustomerOut
+   from app.db import get_session
+   from app.schemas import CustomerOut
 
-   router = APIRouter(prefix="/customers", tags=["customers"])
+   router = APIRouter(prefix="/v1/customers", tags=["customer"])
 
-
-   def get_session() -> Iterator[Session]:
-       with Session(engine) as session:
-           yield session
+   SessionDep = Annotated[Session, Depends(get_session)]
 
 
-   @router.get("", response_model=list[CustomerOut])
-   def get_customers(session: Session = Depends(get_session)):
+   @router.get("", response_model=list[CustomerOut], operation_id="listCustomers")
+   def list_customers(session: SessionDep):
        return services.list_customers(session)
-
-
-   @router.put("", response_model=CustomerOut)
-   def put_customer(data: CustomerIn, session: Session = Depends(get_session)):
-       return services.upsert_customer(session, data)
    ```
 
-   (`routers/__init__.py` も空ファイルで作成する)
+2. [app/main.py](app/main.py) に登録する (`app.include_router(customers.router)`)。
+3. 動作確認。`http://localhost:8000/docs` (Swagger UI) から実行するか、`curl localhost:8000/v1/customers` で呼び出す。
+4. `tests/` に pytest を追加する (`fastapi.testclient.TestClient` を使う。[tests/test_content_api.py](tests/test_content_api.py) を参照)。
 
-2. [app/main.py](app/main.py) に登録する。
+### 手順6: MCP ツールを作る
 
-   ```python
-   from app.routers import customers
-
-   app.include_router(customers.router)
-   ```
-
-3. 動作確認。`http://localhost:8000/docs` (Swagger UI) から実行するか、次のように呼び出す。
-
-   ```bash
-   curl -X PUT localhost:8000/customers -H 'content-type: application/json' \
-     -d '{"name": "サンプル顧客"}'
-   curl localhost:8000/customers
-   ```
-
-4. `tests/` に pytest を追加する (`fastapi.testclient.TestClient` を使う。既存の [tests/test_health.py](tests/test_health.py) を参照)。
-
-### 手順5: MCP ツールを作る
-
-[app/mcp_server.py](app/mcp_server.py) の `mcp` に `@mcp.tool` で関数を追加します。関数名・docstring・型ヒントが、そのままMCPクライアント(LLM)に公開されるツール名・説明・引数スキーマになるため、docstring は用途が分かるように書きます。
+[app/mcp_server.py](app/mcp_server.py) の `mcp` に、同じ operation のツールを追加します。ツール名は `operationId`、引数名は REST と同じ camelCase にします。docstring と型ヒントが、MCPクライアント(LLM)に公開されるツールの説明・引数スキーマになります。
 
 ```python
-from sqlmodel import Session
-
-from app import services
-from app.db import engine
-from app.schemas import CustomerIn
-
-
-@mcp.tool
-def list_customers() -> list[dict]:
+@mcp.tool(name="listCustomers")
+def list_customers():
     """登録されている顧客の一覧をJSONで返す。"""
-    with Session(engine) as session:
-        return [c.model_dump(mode="json") for c in services.list_customers(session)]
-
-
-@mcp.tool
-def upsert_customer(customer: CustomerIn) -> dict:
-    """顧客を登録または更新する。customer_idを省略すると新規作成する。"""
-    with Session(engine) as session:
-        return services.upsert_customer(session, customer).model_dump(mode="json")
+    return _run(lambda s: services.list_customers(s))
 ```
 
+- `_run` が、サービス層の呼び出しとエラーの変換 (REST と同じ `code` / `message` / `details`) を行う。
 - 追加後は uvicorn を再起動する (`--reload` なら自動)。
-- ツールの確認は次の「GitHub Copilot での MCP 設定」で行うか、[MCP Inspector](https://github.com/modelcontextprotocol/inspector) (`npx @modelcontextprotocol/inspector`、Transport: Streamable HTTP、URL: `http://localhost:8000/mcp/`) を使う。
+- ツールの確認は [2. GitHub Copilot での MCP 設定手順](#2-github-copilot-での-mcp-設定手順) で行うか、[MCP Inspector](https://github.com/modelcontextprotocol/inspector) (`npx @modelcontextprotocol/inspector`、Transport: Streamable HTTP、URL: `http://localhost:8000/mcp/`) を使う。
 - 認可・参照先の存在確認など、MCPサーバーで検証すると設計されているルールは `services.py` で実装し、REST と MCP で同じ検証が働くようにする。
+- 最後に `tests/test_api_conformance.py` を実行し、仕様・REST・MCP の一致を確認する。
 
 ## 6. スキーマ変更手順
 
@@ -585,26 +563,28 @@ alembic history            # 履歴
 ### 仕組み
 
 - レコードの追加・更新時、バックエンドが jsonb 列の値を対応するスキーマで検証します。通過した場合のみDBを更新します。
-- 検証に失敗すると、DBは更新されず、エラーの詳細が返ります (REST は HTTP 422、MCP はツールのエラー)。応答の `errors[].path` (JSON Pointer) と `message` で違反箇所を特定し、スキーマを再取得して入力を修正し、再送してください。AI も人間も同じ手順で修正できます。
-- 検証はバックエンドの `app/services.py` で行い、REST と MCP で共通です。スキーマは、リクエストで `schema_id`、または `schema_key` (`schema_version` 省略時は最新版) として指定します。検証エラーには、使ったスキーマの `schema_id`・`schema_key`・`schema_version`・`latest_schema_version` と、再取得の方法 (`refetch`) が含まれます。
+- 検証に失敗すると、DBは更新されず、エラーの詳細が返ります (REST は HTTP 422、MCP はツールのエラー)。応答の `details.errors[].path` (JSON Pointer) と `message` で違反箇所を特定し、スキーマを再取得して入力を修正し、再送してください。AI も人間も同じ手順で修正できます。
+- 検証はバックエンドの `app/services.py` で行い、REST と MCP で共通です。スキーマは、リクエストで `schemaId`、または `schemaKey` (`schemaVersion` 省略時は最新版) として指定します。検証エラーの `details` には、使ったスキーマの `schemaId`・`schemaKey`・`schemaVersion`・`latestSchemaVersion` と、再取得の方法 (`refetch`) が含まれます。
 - `json_schema` の行は更新・削除できません (トリガーで保護。[テーブル構成と制約](#テーブル構成と制約))。**スキーマの編集は、`schema_version` を増やした新しい行の追加**で行います。既存のリビジョンは、作成時点の `schema_id` のスキーマを参照し続けます。
 
 ### 使うAPI
 
-| 操作 | REST | MCPツール |
+| 操作 | REST | MCPツール (operationId) |
 |---|---|---|
-| スキーマの一覧 | `GET /schemas?schema_key=` | `list_json_schemas` |
-| スキーマの取得 | `GET /schemas/{schema_id}`、`GET /schemas/by-key/{schema_key}?version=` (省略時は最新版) | `get_json_schema` |
-| スキーマの登録 | `POST /schemas` | `register_json_schema` |
-| レコード+最初のリビジョンの作成 | `POST /records` | `create_record` |
-| リビジョンの追加 | `POST /records/{record_id}/revisions` | `add_revision` |
-| レコードの取得 | `GET /records/{record_id}` | `get_record` |
+| スキーマの一覧 | `GET /v1/schemas?schemaKey=` | `listSchemas` |
+| スキーマの取得 | `GET /v1/schemas/{schemaId}` | `getSchema` |
+| スキーマの取得 (キー指定) | `GET /v1/schemas/by-key/{schemaKey}?version=` (省略時は最新版) | `getSchemaByKey` |
+| スキーマ本体 (`schemaJson`) の取得 | `GET /v1/schemas/{schemaId}/schema-json`、`GET /v1/schemas/by-key/{schemaKey}/schema-json?version=` | `getSchemaJson`、`getSchemaJsonByKey` |
+| スキーマの登録 | `POST /v1/schemas` | `createSchema` |
+| レコード+最初のリビジョンの作成 | `POST /v1/records` | `createRecord` |
+| リビジョンの追加 | `POST /v1/records/{recordId}/revisions` | `createRevision` |
+| レコードの取得 | `GET /v1/records/{recordId}` | `getRecord` |
 
-検証エラーは、REST では HTTP 422 の JSON (`error`・`target`・`schema`・`errors`・`refetch`・`hint`)、MCP では同じ JSON をメッセージとする ToolError です。Swagger UI (`/docs`) で試せます。
+エラーは、REST では HTTP ステータスと JSON `{"code", "message", "details"}`、MCP では同じ JSON をメッセージとする ToolError です。検証エラーは HTTP 422 の `code: JSON_SCHEMA_VALIDATION_FAILED` で、`details` に `target`・`schema`・`errors`・`refetch`・`hint` が入ります。入力項目の指定エラー (必須項目の未指定など) は HTTP 400 (`INVALID_REQUEST`) です。Swagger UI (`/docs`) で試せます。
 
 ### 手順
 
-1. 現行のスキーマを確認する。`schema_key` ごとの最新の `schema_version` を調べる (`GET /schemas?schema_key=...`、または次のSQL)。
+1. 現行のスキーマを確認する。`schema_key` ごとの最新の `schema_version` を調べる (`GET /v1/schemas?schemaKey=...`、または次のSQL)。
 
    ```sql
    SELECT schema_id, schema_key, schema_version, record_type, feature_domain
@@ -624,9 +604,9 @@ alembic history            # 履歴
 5. 新しい行として登録する。`schema_id` は新しい UUID、`schema_key` は既存と同じ値、`schema_version` は最新+1、`record_type`・`feature_domain` は既存の行と揃える。登録は次のどちらかで行う。
    - 成果物スキーマ (`sys.artifact`) を設計ファイルから登録する: `$id` の版を上げたうえで `python -m app.cli build-seed` を実行すると、`backend/seed/10_json_schema.json` に新しい版の行が追加される (旧版の行は残る。[設計ファイルから初期データを生成する](#設計ファイルから初期データを生成する))。続けて `python -m app.cli seed` を実行する。
    - シードに追加する: `backend/seed/*.json` の `json_schema` に新しい行を書き、`python -m app.cli seed` を実行する ([3. 初期投入データの編集手順](#3-初期投入データの編集手順))。既存行は更新されないため、既存の行を書き換えず、新しい行を追加する。
-   - スキーマ登録のAPI / MCPツールを使う (`POST /schemas`、`register_json_schema`)。`schema_json` はメタスキーマで検証され、`$id` を書く場合は `urn:das:schema:<schema_key>:<schema_version>` と一致している必要がある。シード投入はバックエンドの検証を通らないため、`validate.py` で事前に確認する。
+   - スキーマ登録のAPI / MCPツールを使う (`POST /v1/schemas`、`createSchema`)。`schema_json` はメタスキーマで検証され、`$id` を書く場合は `urn:das:schema:<schema_key>:<schema_version>` と一致している必要がある。シード投入はバックエンドの検証を通らないため、`validate.py` で事前に確認する。
 6. 新しいスキーマを使うプラットフォームに割り当てる。`platform_schema_binding` に `(platform_id, 新しい schema_id)` の行を追加する。複数プラットフォームで同じ行を共有できる。なお、`content_json` の検証に使うスキーマはリクエストで指定したもの (`schema_key` のみなら最新版) で、現時点では `platform_schema_binding` による絞り込みは行わない。
-7. 新しいスキーマで検証されることを確認する。違反する `content_json` を送って、HTTP 422 と `errors` が返ること、DBが更新されていないことを確認する。
+7. 新しいスキーマで検証されることを確認する。違反する `contentJson` を送って、HTTP 422 と `details.errors` が返ること、DBが更新されていないことを確認する。
 
    ```bash
    pytest
@@ -638,4 +618,39 @@ alembic history            # 履歴
 
 - 登録済みのスキーマ (行) を直接 UPDATE / DELETE しない。誤って登録した場合も、新しい `schema_version` の行で置き換える。
 - 新しい版で必須項目を追加するなど、互換性のない変更をするときは、既存リビジョンの `content_json` が新しいスキーマに合わないことがある。既存リビジョンは変更されないが、それを元に新しいリビジョンを作成するときは新しいスキーマで検証されるため、必要に応じて内容を修正する。
-- スキーマを再取得してから修正する。呼び出し元が古いスキーマで修正を続けないよう、エラー応答の `schema_version` と最新版を比べる。
+- スキーマを再取得してから修正する。呼び出し元が古いスキーマで修正を続けないよう、エラー応答の `details.schema.schemaVersion` と `latestSchemaVersion` を比べる。
+
+## 8. OpenAPI 仕様の編集手順
+
+REST API の仕様 (OpenAPI 3.1) は [openapi/openapi.yaml](../openapi/openapi.yaml) です。API の作成・変更は、仕様を先に更新してから実装します ([5. REST API / MCPツールの構築手順](#5-rest-api--mcpツールの構築手順))。要件: [enviroment.md](../design/requiments/enviroment.md) の ENV-041〜ENV-048、決定の経緯: [ADR-0014](../design/requiments/adr/0014-openapi-schema-import.md)。
+
+### 編集と確認
+
+1. `openapi/openapi.yaml` を VS Code などで直接編集する (専用の編集ツールはない)。パスは kebab-case、JSON のフィールドは camelCase、ステータスとエラー形式は [api-guideline.md](../design/requiments/api-guideline.md) に従う。
+2. バックエンドを起動する (`docker compose up -d backend`、または Dev Container で `uvicorn app.main:app --reload --host 0.0.0.0`)。
+3. `http://localhost:8000/docs` (Swagger UI) を開き、仕様が読み込まれ、エラー表示がないこと、外部参照のスキーマ (`ArtifactContent` など) が展開されることを確認する。`/docs` は、FastAPI が実装から自動生成する仕様ではなく、`openapi.yaml` (`http://localhost:8000/openapi.yaml`) を表示する。
+4. 仕様を反映して実装し、`tests/test_api_conformance.py` で仕様・REST・MCP の一致を確認する ([5. REST API / MCPツールの構築手順](#5-rest-api--mcpツールの構築手順))。
+
+- `openapi/` は、`backend` コンテナに `/openapi` として読み取り専用でマウントされる ([compose/backend.yaml](../compose/backend.yaml))。編集内容は、バックエンドの再起動なしで `/openapi.yaml` に反映される (ファイルを都度読み込む)。
+- `/openapi.yaml` と `/docs` は、`/health` と同様に、認証を要求しない運用用のエンドポイントで、OpenAPI の対象外。
+
+### スキーマ取得 API
+
+JSON スキーマテーブルのスキーマは、REST API で取得できます ([7. JSON スキーマの編集手順](#7-json-スキーマの編集手順)の「使うAPI」)。仕様の外部参照には、`schemaJson` 本体だけを返す API (`getSchemaJson`、`getSchemaJsonByKey`) を使います。外部参照として解決できるよう、スキーマ本体から `$id` (`urn:`) を除いて返します (本体内の `#/$defs/...` が `urn:` を基準に解決されるのを避けるため)。スキーマテーブルの内容と、検証に使うスキーマは変わりません。
+
+### JSON スキーマテーブルのスキーマを参照する
+
+`components/schemas` などに、スキーマを取得する URL を `$ref` で書きます。**ホストと版は書きません。**
+
+```yaml
+ArtifactContent:
+  $ref: /v1/schemas/by-key/sys.artifact/schema-json
+```
+
+- ホストを書かないため、参照は、仕様を配信しているホスト (バックエンドの `/openapi.yaml`) を基準に解決される。ローカルと本番で `openapi.yaml` を書き換えない (ENV-047)。
+  - ローカル: `http://localhost:8000/openapi.yaml` を配信するローカルのバックエンド。
+  - 本番: 本番のバックエンドの `/openapi.yaml`。または `/openapi.yaml` と `/v1/` を同じホストから本番のバックエンドへ中継する配信元。
+  - リバースプロキシや CORS の設定は要らない。
+- 版を書かないため、常に最新版を参照する。スキーマテーブルに新しい版を登録すると、`openapi.yaml` を変更せずに、参照先が最新版に切り替わる。新しい版は、既存の REST API の呼び出し元に影響しないことを確認してから登録する。環境ごとに登録されている版が異なれば、仕様の内容も環境ごとに異なる。
+- 特定の版に固定したいときは、`/v1/schemas/by-key/{schemaKey}/schema-json?version={版}` または `/v1/schemas/{schemaId}/schema-json` を書く。
+- 実装 (検証) が使うスキーマは、リクエストで指定する `schemaId` / `schemaKey` であり、仕様の外部参照とは独立している。

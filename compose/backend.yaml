@@ -9,6 +9,8 @@ x-backend: &backend
   working_dir: /app
   volumes:
     - ../backend:/app
+    # REST API の仕様。/openapi.yaml で配信し、/docs (Swagger UI) で表示する
+    - ../openapi:/openapi:ro
   # 認証情報は必須の .env から読み込む (POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB)。
   env_file:
     - ../.env

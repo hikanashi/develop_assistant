@@ -1,18 +1,24 @@
-"""REST / MCP の入出力モデル (JSONの形)。"""
+"""REST / MCP の入出力モデル (JSONの形)。
+
+JSON のフィールド名は camelCase (API ガイドライン)。属性名は snake_case で、alias で変換する。
+"""
 
 import uuid
 from datetime import datetime
 from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic.alias_generators import to_camel
 
 RecordType = Literal["FEATURE", "ARTIFACT"]
 FeatureDomain = Literal["HARDWARE", "BASIC_SOFTWARE", "APPLICATION"]
 
 
-class JsonSchemaSummary(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class ApiModel(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
 
+
+class JsonSchemaSummary(ApiModel):
     schema_id: uuid.UUID
     schema_key: str
     schema_version: int
@@ -22,23 +28,19 @@ class JsonSchemaSummary(BaseModel):
 
 
 class JsonSchemaOut(JsonSchemaSummary):
-    model_config = ConfigDict(populate_by_name=True)
-
-    # BaseModel.schema_json と衝突するため、属性名は schema_body とし JSON上は schema_json とする
-    schema_body: dict[str, Any] = Field(alias="schema_json")
+    # BaseModel.schema_json と衝突するため、属性名は schema_body とし JSON上は schemaJson とする
+    schema_body: dict[str, Any] = Field(alias="schemaJson")
 
 
-class JsonSchemaIn(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
+class JsonSchemaIn(ApiModel):
     schema_key: str = Field(min_length=1)
     schema_version: int = Field(ge=1)
     record_type: RecordType
     feature_domain: FeatureDomain | None = None
-    schema_body: dict[str, Any] = Field(alias="schema_json")
+    schema_body: dict[str, Any] = Field(alias="schemaJson")
 
 
-class SchemaRef(BaseModel):
+class SchemaRef(ApiModel):
     """検証に使うスキーマの指定。schema_id か、schema_key (+ schema_version) のどちらか。
 
     schema_version を省略すると、schema_key の最新版を使う。
@@ -80,9 +82,7 @@ class RecordIn(RevisionIn):
         return self
 
 
-class RevisionOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class RevisionOut(ApiModel):
     revision_id: uuid.UUID
     record_id: uuid.UUID
     schema_id: uuid.UUID
@@ -92,9 +92,7 @@ class RevisionOut(BaseModel):
     created_at: datetime
 
 
-class RecordOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class RecordOut(ApiModel):
     record_id: uuid.UUID
     origin_platform_id: uuid.UUID | None
     origin_product_id: uuid.UUID | None

@@ -8,25 +8,34 @@ from app import services
 from app.db import get_session
 from app.schemas import RecordIn, RecordWithRevisions, RevisionIn, RevisionOut
 
-router = APIRouter(prefix="/records", tags=["record"])
+# operation_id は OPENAPI_FILE の operationId、MCP のツール名と一致させる (ENV-046)
+router = APIRouter(prefix="/v1/records", tags=["record"])
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-@router.post("", response_model=RecordWithRevisions, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=RecordWithRevisions,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="createRecord",
+)
 def create_record(session: SessionDep, body: RecordIn):
-    """レコードと最初のリビジョンを作成する。content_json は JSON Schema で検証される。"""
+    """レコードと最初のリビジョンを作成する。contentJson は JSON Schema で検証される。"""
     return services.create_record(session, body)
 
 
-@router.get("/{record_id}", response_model=RecordWithRevisions)
-def get_record(session: SessionDep, record_id: uuid.UUID):
-    return services.get_record(session, record_id)
+@router.get("/{recordId}", response_model=RecordWithRevisions, operation_id="getRecord")
+def get_record(session: SessionDep, recordId: uuid.UUID):
+    return services.get_record(session, recordId)
 
 
 @router.post(
-    "/{record_id}/revisions", response_model=RevisionOut, status_code=status.HTTP_201_CREATED
+    "/{recordId}/revisions",
+    response_model=RevisionOut,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="createRevision",
 )
-def add_revision(session: SessionDep, record_id: uuid.UUID, body: RevisionIn):
-    """新しいリビジョンを追加する。content_json は JSON Schema で検証される。"""
-    return services.add_revision(session, record_id, body)
+def create_revision(session: SessionDep, recordId: uuid.UUID, body: RevisionIn):
+    """新しいリビジョンを追加する。contentJson は JSON Schema で検証される。"""
+    return services.add_revision(session, recordId, body)
